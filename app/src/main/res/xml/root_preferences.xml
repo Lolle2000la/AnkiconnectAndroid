@@ -49,6 +49,20 @@
                 app:summary="@string/settings_preferred_storage_dir_path_summary"/>
         <Preference
                 app:iconSpaceReserved="false"
+                app:key="import_local_audio_db"
+                app:title="@string/settings_import_local_audio_title"
+                app:summary="@string/settings_import_local_audio_summary" />
+        <Preference
+                app:iconSpaceReserved="false"
+                app:key="local_audio_db_status"
+                app:title="@string/settings_local_audio_status_title" />
+        <Preference
+                app:iconSpaceReserved="false"
+                app:key="delete_local_audio_db"
+                app:title="@string/settings_delete_local_audio_title"
+                app:summary="@string/settings_delete_local_audio_summary" />
+        <Preference
+                app:iconSpaceReserved="false"
                 app:key="reset_storage_settings"
                 app:title="@string/reset_preferred_storage_settings_title"
                 app:summary="@string/reset_preferred_storage_settings_summary"/>

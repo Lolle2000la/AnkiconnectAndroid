@@ -91,6 +91,20 @@ The signed APK is written to
 apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk
 ```
 
+## Installation and Play Protect
+
+These APKs are **not** distributed through Google Play, so Play Protect may warn
+about them or offer to remove them. This is a distribution/trust signal, not a
+sign of a problem with the build. If Play Protect blocks installation:
+
+- On the warning dialog, choose **Install anyway** / open **More details** and
+  continue.
+- Or temporarily disable Play Protect scanning while installing, then re-enable it.
+- Obtainium and `adb install` usually bypass the interactive warning.
+
+The app is signed with your own release key and has its own package name
+(`com.lolle2000la.ankiconnectandroid`), independent of upstream.
+
 ## Starting the service from ADB (or another app)
 
 The service is exported, so it can be started without opening the app. Note that the

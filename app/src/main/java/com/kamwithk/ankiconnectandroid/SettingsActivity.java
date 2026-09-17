@@ -2,32 +2,31 @@ package com.kamwithk.ankiconnectandroid;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ListView;
+import android.text.format.Formatter;
 import android.widget.Toast;
-
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
-
+import androidx.preference.PreferenceManager;
 import com.google.android.material.snackbar.Snackbar;
-
-import org.jsoup.internal.StringUtil;
-
+import com.kamwithk.ankiconnectandroid.routing.database.LocalAudioImporter;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-
+import org.jsoup.internal.StringUtil;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -56,10 +55,68 @@ public class SettingsActivity extends AppCompatActivity {
 
         // Derived from the applicationId so it stays correct if the package is ever changed again.
         private static final String DEFAULT_DIRECTORY_PATH = "/Android/data/" + BuildConfig.APPLICATION_ID + "/files";
+
+        private ActivityResultLauncher<String[]> importDatabaseLauncher;
+
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            importDatabaseLauncher =
+                    registerForActivityResult(new ActivityResultContracts.OpenDocument(), this::onDatabasePicked);
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            updateLocalAudioStatus();
+        }
+
+        private void onDatabasePicked(Uri uri) {
+            if (uri == null) {
+                return;
+            }
+            Context context = getContext();
+            if (context == null) {
+                return;
+            }
+            try {
+                context.getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            } catch (SecurityException ignored) {
+                // Not all providers offer persistable permissions; the current read grant still applies.
+            }
+            ContextCompat.startForegroundService(context, LocalAudioImportService.importIntent(context, uri));
+            Toast.makeText(context, R.string.settings_import_local_audio_started, Toast.LENGTH_LONG)
+                    .show();
+        }
+
+        private void updateLocalAudioStatus() {
+            Preference status = findPreference("local_audio_db_status");
+            Context context = getContext();
+            if (status == null || context == null) {
+                return;
+            }
+
+            StringBuilder summary = new StringBuilder();
+            File databaseFile = LocalAudioImporter.getDatabaseFile(context);
+            if (databaseFile.isFile()) {
+                summary.append(databaseFile.getAbsolutePath())
+                        .append("\n")
+                        .append(Formatter.formatShortFileSize(context, databaseFile.length()));
+            } else {
+                summary.append(getString(R.string.settings_local_audio_status_missing));
+            }
+
+            String lastResult = PreferenceManager.getDefaultSharedPreferences(context)
+                    .getString(LocalAudioImportService.PREF_LAST_RESULT, null);
+            if (lastResult != null) {
+                summary.append("\n").append(lastResult);
+            }
+            status.setSummary(summary.toString());
+        }
+
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
-
 
             Preference preference = findPreference("access_overlay_perms");
             if (preference != null) {
@@ -69,7 +126,6 @@ public class SettingsActivity extends AppCompatActivity {
                     startActivity(permIntent);
                     return true;
                 });
-
             }
 
             preference = findPreference("access_manage_all_files_perms");
@@ -80,28 +136,33 @@ public class SettingsActivity extends AppCompatActivity {
                     startActivity(permIntent);
                     return true;
                 });
-
             }
-
 
             EditTextPreference corsHostPreference = findPreference("cors_hostname");
             if (corsHostPreference != null) {
-                corsHostPreference.setOnBindEditTextListener(editText -> editText.setHint("e.g. http://example.com"));            }
-
-
+                corsHostPreference.setOnBindEditTextListener(editText -> editText.setHint("e.g. http://example.com"));
+            }
 
             preference = findPreference("storage_location");
             if (preference != null) {
                 Context context = getContext();
                 if (context == null) {
-                    Toast.makeText(getContext(), "Cannot get local audio folder, as context is null.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(
+                                    getContext(),
+                                    "Cannot get local audio folder, as context is null.",
+                                    Toast.LENGTH_LONG)
+                            .show();
                 } else {
-                    String[] dirs = Arrays.stream(context.getExternalFilesDirs(null)).map(File::getAbsolutePath).map(s -> s.replace(DEFAULT_DIRECTORY_PATH, "")).toArray(String[]::new);
+                    String[] dirs = Arrays.stream(context.getExternalFilesDirs(null))
+                            .map(File::getAbsolutePath)
+                            .map(s -> s.replace(DEFAULT_DIRECTORY_PATH, ""))
+                            .toArray(String[]::new);
                     ((ListPreference) preference).setEntries(dirs);
                     ((ListPreference) preference).setEntryValues(dirs);
 
-                    if((StringUtil.isBlank(((ListPreference) preference).getValue()))){
-                        preference.setDefaultValue(dirs[0]); // The first value is equivalent to context.getExternalFilesDir(null)
+                    if ((StringUtil.isBlank(((ListPreference) preference).getValue()))) {
+                        preference.setDefaultValue(
+                                dirs[0]); // The first value is equivalent to context.getExternalFilesDir(null)
                         ((ListPreference) preference).setValueIndex(0);
                     }
                 }
@@ -110,21 +171,28 @@ public class SettingsActivity extends AppCompatActivity {
             if (preference != null) {
                 Context context = getContext();
                 if (context == null) {
-                    Toast.makeText(getContext(), "Cannot get local audio folder, as context is null.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(
+                                    getContext(),
+                                    "Cannot get local audio folder, as context is null.",
+                                    Toast.LENGTH_LONG)
+                            .show();
                 } else {
                     preference.setDefaultValue(DEFAULT_DIRECTORY_PATH);
                     preference.setOnPreferenceChangeListener((p, i) -> {
                         ListPreference storagePreference = findPreference("storage_location");
                         Path fullPath = Paths.get(storagePreference.getValue(), i.toString());
 
-                        if (!Files.exists(fullPath)){
-                            Snackbar.make(context, getView(), "Not a valid directory\n"+fullPath.toString(), Snackbar.LENGTH_LONG)
+                        if (!Files.exists(fullPath)) {
+                            Snackbar.make(
+                                            context,
+                                            getView(),
+                                            "Not a valid directory\n" + fullPath.toString(),
+                                            Snackbar.LENGTH_LONG)
                                     .show();
                             return false;
                         }
                         return true;
                     });
-
                 }
             }
 
@@ -132,20 +200,25 @@ public class SettingsActivity extends AppCompatActivity {
             if (preference != null) {
                 // custom handler of preference: open permissions screen
                 preference.setOnPreferenceClickListener(p -> {
-
                     Context context = getContext();
                     if (context == null) {
-                        Toast.makeText(getContext(), "Cannot get local audio folder, as context is null.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(
+                                        getContext(),
+                                        "Cannot get local audio folder, as context is null.",
+                                        Toast.LENGTH_LONG)
+                                .show();
                     } else {
                         ListPreference storageDevicePreference = findPreference("storage_location");
                         EditTextPreference storageDirPreference = findPreference("storage_dir_path");
 
-                        String[] dirs = Arrays.stream(context.getExternalFilesDirs(null)).map(File::getAbsolutePath).map(s -> s.replace(DEFAULT_DIRECTORY_PATH, "")).toArray(String[]::new);
+                        String[] dirs = Arrays.stream(context.getExternalFilesDirs(null))
+                                .map(File::getAbsolutePath)
+                                .map(s -> s.replace(DEFAULT_DIRECTORY_PATH, ""))
+                                .toArray(String[]::new);
 
                         storageDevicePreference.setValue(dirs[0]);
                         storageDevicePreference.setValueIndex(0);
                         storageDirPreference.setText(DEFAULT_DIRECTORY_PATH);
-
                     }
                     return true;
                 });
@@ -155,30 +228,62 @@ public class SettingsActivity extends AppCompatActivity {
             if (preference != null) {
                 // custom handler of preference: open permissions screen
                 preference.setOnPreferenceClickListener(p -> {
-
                     Context context = getContext();
                     if (context == null) {
-                        Toast.makeText(getContext(), "Cannot get local audio folder, as context is null.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(
+                                        getContext(),
+                                        "Cannot get local audio folder, as context is null.",
+                                        Toast.LENGTH_LONG)
+                                .show();
                     } else {
                         ListPreference storageDevicePreference = findPreference("storage_location");
                         EditTextPreference storageDirPreference = findPreference("storage_dir_path");
 
                         Path fullPath = Paths.get(storageDevicePreference.getValue(), storageDirPreference.getText());
 
-                        Toast.makeText(getContext(), "Local audio folder: " + fullPath.toString(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getContext(), "Local audio folder: " + fullPath.toString(), Toast.LENGTH_LONG)
+                                .show();
 
                         // TODO snackbar?
                         // getView() seems to be null...
-//                        Snackbar snackbar = Snackbar.make(getView().findViewById(R.id.settings),
-//                                "Local audio folder: " + context.getExternalFilesDir(null),
-//                                BaseTransientBottomBar.LENGTH_LONG);
-//                        snackbar.show();
+                        //                        Snackbar snackbar =
+                        // Snackbar.make(getView().findViewById(R.id.settings),
+                        //                                "Local audio folder: " + context.getExternalFilesDir(null),
+                        //                                BaseTransientBottomBar.LENGTH_LONG);
+                        //                        snackbar.show();
+                    }
+                    return true;
+                });
+            }
+
+            preference = findPreference("import_local_audio_db");
+            if (preference != null) {
+                preference.setOnPreferenceClickListener(p -> {
+                    if (importDatabaseLauncher != null) {
+                        importDatabaseLauncher.launch(new String[] {"*/*"});
+                    }
+                    return true;
+                });
+            }
+
+            preference = findPreference("delete_local_audio_db");
+            if (preference != null) {
+                preference.setOnPreferenceClickListener(p -> {
+                    Context context = getContext();
+                    if (context != null) {
+                        new AlertDialog.Builder(context)
+                                .setTitle(R.string.settings_delete_local_audio_confirm_title)
+                                .setMessage(R.string.settings_delete_local_audio_confirm_message)
+                                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                                    LocalAudioImporter.deleteDatabase(context);
+                                    updateLocalAudioStatus();
+                                })
+                                .setNegativeButton(android.R.string.cancel, null)
+                                .show();
                     }
                     return true;
                 });
             }
         }
     }
-
-
 }

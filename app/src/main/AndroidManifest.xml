@@ -3,7 +3,11 @@
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <!--
+        Only needed for the legacy "choose an arbitrary local audio directory" option.
+        The default storage (app-specific external files dir) and the in-app SAF import
+        require no storage permission.
+    -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -61,6 +65,10 @@
         <service
             android:name=".Service"
             android:exported="true" />
+
+        <service
+            android:name=".LocalAudioImportService"
+            android:exported="false" />
 
         <receiver
             android:name=".BootReceiver"
