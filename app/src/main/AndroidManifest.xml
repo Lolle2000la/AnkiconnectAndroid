@@ -8,6 +8,12 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!--
+        Lets the settings screen ask the user to exempt the app from battery optimization so the
+        server is less likely to be paused/killed in the background. Google Play restricts this
+        permission; it is fine for sideloaded builds.
+    -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!--
         This permission is required to open another activity from an app in the background
         (i.e. AnkiConnectAndroid opening AnkiDroid when the kiwi browser is in focus)
         NOTE: https://developer.android.com/reference/android/Manifest.permission#SYSTEM_ALERT_WINDOW

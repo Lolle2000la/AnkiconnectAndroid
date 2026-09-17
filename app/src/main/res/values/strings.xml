@@ -9,6 +9,10 @@
     <string name="settings_other_header">Other</string>
     <string name="settings_start_on_boot_title">Start on boot</string>
     <string name="settings_start_on_boot_summary">Automatically start the server after the device restarts.</string>
+    <string name="settings_battery_optimization_title">Disable battery optimization</string>
+    <string name="settings_battery_optimization_summary_enabled">Battery optimization is on. Disable it so the server is less likely to be paused or killed in the background.</string>
+    <string name="settings_battery_optimization_summary_disabled">Battery optimization is off. The server can keep running in the background.</string>
+    <string name="settings_import_notifications_disabled">Notifications are disabled, so import progress and the result won\'t be shown. A message will still appear when it finishes; enable notifications in system settings for the full view.</string>
     <string name="settings_forvo_language_title">Forvo language</string>
     <string name="settings_forvo_language_summary">Sets the language to use for Forvo audio.</string>
     <string name="settings_forvo_language_dialog_title">Select Language</string>

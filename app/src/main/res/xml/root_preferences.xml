@@ -59,6 +59,12 @@
                 app:title="@string/settings_start_on_boot_title"
                 app:summary="@string/settings_start_on_boot_summary" />
 
+        <Preference
+                app:iconSpaceReserved="false"
+                app:key="disable_battery_optimization"
+                app:title="@string/settings_battery_optimization_title"
+                app:summary="@string/settings_battery_optimization_summary_enabled" />
+
         <ListPreference
             app:iconSpaceReserved="false"
             app:key="forvo_language"

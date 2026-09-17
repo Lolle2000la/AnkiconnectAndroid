@@ -7,11 +7,17 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.SystemClock;
+import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.preference.PreferenceManager;
 import com.kamwithk.ankiconnectandroid.routing.database.LocalAudioImporter;
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -19,7 +25,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * copy is not killed while the app is in the background.
  */
 public class LocalAudioImportService extends Service {
-    private static final String TAG = "AnkiconnectAndroid";
 
     public static final String ACTION_IMPORT = "com.kamwithk.ankiconnectandroid.action.IMPORT_LOCAL_AUDIO";
     public static final String ACTION_CANCEL = "com.kamwithk.ankiconnectandroid.action.CANCEL_LOCAL_AUDIO_IMPORT";
@@ -29,19 +34,26 @@ public class LocalAudioImportService extends Service {
     public static final String PREF_LAST_RESULT = "local_audio_last_import_result";
 
     private static final String CHANNEL_ID = "localAudioImport";
+    private static final String RESULT_CHANNEL_ID = "localAudioImportResult";
     private static final int NOTIFICATION_ID = 2;
+    private static final long PROGRESS_THROTTLE_MS = 500;
 
     private final AtomicBoolean cancelled = new AtomicBoolean(false);
     private NotificationManager notificationManager;
     private Thread worker;
+    private long lastProgressUpdate;
 
     @Override
     public void onCreate() {
         super.onCreate();
         notificationManager = getSystemService(NotificationManager.class);
-        NotificationChannel channel =
+        NotificationChannel progressChannel =
                 new NotificationChannel(CHANNEL_ID, "Local audio import", NotificationManager.IMPORTANCE_LOW);
-        notificationManager.createNotificationChannel(channel);
+        // A separate, higher-importance channel for the result. Channel importance cannot be
+        // raised after creation, so the result must not share the low-importance progress channel.
+        NotificationChannel resultChannel = new NotificationChannel(
+                RESULT_CHANNEL_ID, "Local audio import results", NotificationManager.IMPORTANCE_DEFAULT);
+        notificationManager.createNotificationChannels(Arrays.asList(progressChannel, resultChannel));
     }
 
     @Override
@@ -83,22 +95,49 @@ public class LocalAudioImportService extends Service {
 
         if (notificationManager != null) {
             notificationManager.notify(NOTIFICATION_ID, buildResultNotification(result.message));
+            stopForeground(false);
+        } else {
+            stopForeground(true);
         }
-        stopForeground(false);
+
+        // Toast also works when notifications are disabled, so the outcome is never silent.
+        showToast(result.message);
         stopSelf();
     }
 
+    /**
+     * Progress updates are throttled: a fast local copy can produce hundreds of callbacks per
+     * second, which the notification manager rate-limits anyway.
+     */
     private void updateProgress(long copied, long total) {
         if (notificationManager == null) {
             return;
         }
-        String text = total > 0
-                ? String.format(
-                        java.util.Locale.US,
-                        "Importing local audio database… %d%%",
-                        Math.min(100, copied * 100 / total))
+        long now = SystemClock.elapsedRealtime();
+        int percent = total > 0 ? (int) Math.min(100, copied * 100 / total) : -1;
+        if (percent != 100 && now - lastProgressUpdate < PROGRESS_THROTTLE_MS) {
+            return;
+        }
+        lastProgressUpdate = now;
+
+        String text = percent >= 0
+                ? String.format(Locale.US, "Importing local audio database… %d%%", percent)
                 : "Importing local audio database…";
         notificationManager.notify(NOTIFICATION_ID, buildProgressNotification(text, copied, total));
+    }
+
+    /** Called on Android 15+ when a {@code dataSync} foreground service hits its time limit. */
+    @Override
+    public void onTimeout(int startId, int fgsType) {
+        cancelled.set(true);
+        showToast("Local audio import timed out");
+        stopSelf();
+    }
+
+    private void showToast(String message) {
+        new Handler(Looper.getMainLooper())
+                .post(() -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG)
+                        .show());
     }
 
     private Notification buildProgressNotification(String text, long copied, long total) {
@@ -119,7 +158,7 @@ public class LocalAudioImportService extends Service {
     }
 
     private Notification buildResultNotification(String message) {
-        return new NotificationCompat.Builder(this, CHANNEL_ID)
+        return new NotificationCompat.Builder(this, RESULT_CHANNEL_ID)
                 .setContentTitle("Ankiconnect Android")
                 .setContentText(message)
                 .setSmallIcon(R.mipmap.app_launcher)

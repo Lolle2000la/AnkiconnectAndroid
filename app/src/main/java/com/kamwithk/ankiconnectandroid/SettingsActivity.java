@@ -1,9 +1,12 @@
 package com.kamwithk.ankiconnectandroid;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.format.Formatter;
 import android.widget.Toast;
@@ -13,6 +16,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
@@ -48,6 +52,12 @@ public class SettingsActivity extends AppCompatActivity {
 
         private ActivityResultLauncher<String[]> importDatabaseLauncher;
 
+        private final SharedPreferences.OnSharedPreferenceChangeListener importResultListener = (preferences, key) -> {
+            if (LocalAudioImportService.PREF_LAST_RESULT.equals(key)) {
+                updateLocalAudioStatus();
+            }
+        };
+
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
@@ -59,6 +69,22 @@ public class SettingsActivity extends AppCompatActivity {
         public void onResume() {
             super.onResume();
             updateLocalAudioStatus();
+            updateBatteryOptimizationSummary();
+            Context context = getContext();
+            if (context != null) {
+                PreferenceManager.getDefaultSharedPreferences(context)
+                        .registerOnSharedPreferenceChangeListener(importResultListener);
+            }
+        }
+
+        @Override
+        public void onPause() {
+            Context context = getContext();
+            if (context != null) {
+                PreferenceManager.getDefaultSharedPreferences(context)
+                        .unregisterOnSharedPreferenceChangeListener(importResultListener);
+            }
+            super.onPause();
         }
 
         private void onDatabasePicked(Uri uri) {
@@ -74,9 +100,28 @@ public class SettingsActivity extends AppCompatActivity {
             } catch (SecurityException ignored) {
                 // Not all providers offer persistable permissions; the current read grant still applies.
             }
+            if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+                Toast.makeText(context, R.string.settings_import_notifications_disabled, Toast.LENGTH_LONG)
+                        .show();
+            }
             ContextCompat.startForegroundService(context, LocalAudioImportService.importIntent(context, uri));
             Toast.makeText(context, R.string.settings_import_local_audio_started, Toast.LENGTH_LONG)
                     .show();
+        }
+
+        private void updateBatteryOptimizationSummary() {
+            Preference preference = findPreference("disable_battery_optimization");
+            Context context = getContext();
+            if (preference == null || context == null) {
+                return;
+            }
+            PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+            boolean exempt =
+                    powerManager != null && powerManager.isIgnoringBatteryOptimizations(context.getPackageName());
+            preference.setSummary(
+                    exempt
+                            ? R.string.settings_battery_optimization_summary_disabled
+                            : R.string.settings_battery_optimization_summary_enabled);
         }
 
         private void updateLocalAudioStatus() {
@@ -121,6 +166,29 @@ public class SettingsActivity extends AppCompatActivity {
             EditTextPreference corsHostPreference = findPreference("cors_hostname");
             if (corsHostPreference != null) {
                 corsHostPreference.setOnBindEditTextListener(editText -> editText.setHint("e.g. http://example.com"));
+            }
+
+            preference = findPreference("disable_battery_optimization");
+            if (preference != null) {
+                preference.setOnPreferenceClickListener(p -> {
+                    Context context = getContext();
+                    if (context == null) {
+                        return true;
+                    }
+                    PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+                    if (powerManager != null && powerManager.isIgnoringBatteryOptimizations(context.getPackageName())) {
+                        startActivity(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
+                    } else {
+                        Intent request = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                                .setData(Uri.parse("package:" + context.getPackageName()));
+                        try {
+                            startActivity(request);
+                        } catch (ActivityNotFoundException e) {
+                            startActivity(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
+                        }
+                    }
+                    return true;
+                });
             }
 
             preference = findPreference("import_local_audio_db");

@@ -44,6 +44,7 @@ Here's how to set everything up from scratch (if you've already got Yomitan work
 3. Install Ankiconnect Android (Lolle) - Download the latest APK from this fork's [Releases Section](https://github.com/Lolle2000la/AnkiconnectAndroid/releases/latest), or set up automatic updates with [Obtainium](https://github.com/ImranR98/Obtainium) (see [docs/self-hosting.md](./docs/self-hosting.md))
 4. Start the Ankiconnect Android app, accept the permissions and hit start service
     * Optional: enable `Start on boot` in the settings to start the server automatically after a restart.
+    * Optional: tap `Disable battery optimization` in the settings so the server keeps running reliably in the background.
 5. Install the [Yomitan extension](https://addons.mozilla.org/en-US/firefox/addon/yomitan/) in Firefox Browser
 6. Configure Yomitan general settings
     1. Ensure advanced settings is enabled (button at the bottom right corner)
@@ -258,6 +259,17 @@ This happens when you change the fields of a card. For example, if you added a f
 renamed a field, or deleted a field, then this error may pop up.
 To fix it, navigate to `Yomitan Settings` → `Anki` →  `Configure Anki card format...`,
 and update the model fields (i.e. by switching it to a different model and back).
+
+
+### Problem: the server stops after a while
+Android may pause or kill background work to save battery. To keep the server running:
+- Open the settings and tap `Disable battery optimization`.
+- On some devices (especially Samsung, Xiaomi and Huawei), also set the app's battery usage to
+  `Unrestricted` and make sure the app is not in a "sleeping apps" / "deep sleeping apps" list.
+- If the app is force-stopped by the user, it will not restart until it is opened again.
+
+> The server runs as a `specialUse` foreground service, which is **not** subject to Android 15's
+> six-hour foreground-service timeout (that limit applies to `dataSync`/`mediaProcessing` only).
 
 
 ### I still have a problem
