@@ -3,6 +3,7 @@ package com.kamwithk.ankiconnectandroid.ankidroid_api;
 import static com.ichi2.anki.api.AddContentApi.READ_WRITE_PERMISSION;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -350,24 +351,48 @@ public class IntegratedAPI {
     }
 
     public ArrayList<Long> guiBrowse(String query) {
+        // AnkiDroid's documented deep link (anki://x-callback-url/browser) always scopes the
+        // search to the last selected deck, so a note added to a different deck looks like it
+        // does not exist. Where AnkiDroid exports CardBrowser (up to at least 2.24.x), launch it
+        // directly with all_decks=true. Newer AnkiDroid keeps CardBrowser unexported, so fall
+        // back to the deep link in that case.
+        Intent browserIntent = new Intent();
+        browserIntent.setClassName("com.ichi2.anki", "com.ichi2.anki.CardBrowser");
+        browserIntent.putExtra("search_query", query);
+        browserIntent.putExtra("all_decks", true);
+        applyBrowseFlags(browserIntent);
+        try {
+            context.startActivity(browserIntent);
+            return new ArrayList<>();
+        } catch (ActivityNotFoundException | SecurityException e) {
+            // Fall through to the public deep link.
+        }
+
         // https://github.com/ankidroid/Anki-Android/pull/11899
-        Uri webpage = Uri.parse("anki://x-callback-url/browser?search=" + query);
+        Uri webpage = Uri.parse("anki://x-callback-url/browser")
+                .buildUpon()
+                .appendQueryParameter("search", query)
+                .build();
         Intent webIntent = new Intent(Intent.ACTION_VIEW, webpage);
         webIntent.setPackage("com.ichi2.anki");
-        // FLAG_ACTIVITY_NEW_TASK is needed in order to display the intent from a different app
-        // FLAG_ACTIVITY_CLEAR_TOP and Intent.FLAG_ACTIVITY_TASK_ON_HOME is needed in order to not
-        // cause a long chain of activities within Ankidroid
-        // (i.e. browser <- word <- browser <- word <- browser <- word)
-        // FLAG_ACTIVITY_CLEAR_TOP also allows the browser window to refresh with the new word
-        // if AnkiDroid was already on the card browser activity.
-        // see: https://stackoverflow.com/a/23874622
-        webIntent.setFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
+        applyBrowseFlags(webIntent);
         context.startActivity(webIntent);
 
         // The result doesn't seem to be used by Yomichan at all, so it can be safely ignored.
         // If we want to get the results, calling the findNotes() method will likely cause
         // unwanted delay.
         return new ArrayList<>();
+    }
+
+    private void applyBrowseFlags(Intent intent) {
+        // FLAG_ACTIVITY_NEW_TASK is needed in order to display the intent from a different app.
+        // FLAG_ACTIVITY_CLEAR_TOP and FLAG_ACTIVITY_TASK_ON_HOME are needed in order to not
+        // cause a long chain of activities within AnkiDroid
+        // (i.e. browser <- word <- browser <- word <- browser <- word).
+        // FLAG_ACTIVITY_CLEAR_TOP also allows the browser window to refresh with the new word
+        // if AnkiDroid was already on the card browser activity.
+        // See: https://stackoverflow.com/a/23874622
+        intent.setFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
     }
 }
