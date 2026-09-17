@@ -261,6 +261,19 @@ To fix it, navigate to `Yomitan Settings` → `Anki` →  `Configure Anki card f
 and update the model fields (i.e. by switching it to a different model and back).
 
 
+### Problem: local audio doesn't work (especially after importing PC settings)
+The port is **different on desktop and on Android**:
+* Desktop `local-audio-yomichan`: `http://localhost:5050/...`
+* This app: `http://localhost:8765/localaudio/get/?term={term}&reading={reading}`
+
+If you imported Yomitan settings from your PC, or restored a backup, the audio source may still
+point at the desktop port `5050`. Edit the audio source and change it to the `8765` URL above.
+(Forvo is also on `8765`, but at the root path: `http://localhost:8765/?term={term}&reading={reading}`.)
+
+An easy way to tell: if Anki mining works but no audio plays, the port for Anki is fine and only the
+audio source URL is wrong.
+
+
 ### Problem: the server stops after a while
 Android may pause or kill background work to save battery. To keep the server running:
 - Open the settings and tap `Disable battery optimization`.
