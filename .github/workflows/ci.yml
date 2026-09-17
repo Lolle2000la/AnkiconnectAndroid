@@ -32,5 +32,8 @@ jobs:
       - name: Check formatting
         run: ./gradlew --no-daemon spotlessCheck
 
+      - name: Unit tests
+        run: ./gradlew --no-daemon testDebugUnitTest
+
       - name: Build debug APK
         run: ./gradlew --no-daemon assembleDebug
