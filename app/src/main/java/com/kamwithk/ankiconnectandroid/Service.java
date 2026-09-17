@@ -8,6 +8,7 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import com.kamwithk.ankiconnectandroid.routing.Router;
@@ -16,6 +17,7 @@ import java.io.IOException;
 
 public class Service extends android.app.Service {
     public static final int PORT = 8765;
+    private static final String TAG = "AnkiconnectAndroid";
 
     private Router server;
 
@@ -23,12 +25,17 @@ public class Service extends android.app.Service {
     public void onCreate() { // Only one time
         super.onCreate();
         ServiceState.set(ServiceState.State.STARTING);
+        startServer();
+    }
 
+    private void startServer() {
+        if (server != null) {
+            return;
+        }
         try {
             server = new Router(PORT, this);
         } catch (IOException e) {
-            Log.w("Httpd", "The Server was unable to start");
-            e.printStackTrace();
+            Log.w(TAG, "The server was unable to bind port " + PORT, e);
         }
     }
 
@@ -52,8 +59,21 @@ public class Service extends android.app.Service {
                 .build();
 
         startForeground(1, notification);
-        ServiceState.set(ServiceState.State.RUNNING);
 
+        // onCreate normally binds the port, but retry here in case it was still in use then
+        // (for example during an app update). Otherwise the UI would claim the server is running
+        // while nothing is listening.
+        startServer();
+        if (server == null) {
+            Log.e(TAG, "Could not bind port " + PORT + "; stopping the server");
+            Toast.makeText(this, "Could not start the server: port " + PORT + " is in use", Toast.LENGTH_LONG)
+                    .show();
+            ServiceState.set(ServiceState.State.STOPPED);
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+
+        ServiceState.set(ServiceState.State.RUNNING);
         return START_STICKY;
     }
 

@@ -1,6 +1,7 @@
 package com.kamwithk.ankiconnectandroid.routing.database;
 
 import android.content.Context;
+import android.util.Log;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import java.io.File;
@@ -19,6 +20,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public final class LocalAudioDatabase {
     public static final String DB_NAME = "android.db";
+    private static final String TAG = "AnkiconnectAndroid";
 
     private static final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private static EntriesDatabase instance;
@@ -56,6 +58,12 @@ public final class LocalAudioDatabase {
         try {
             if (instance == null || !path.equals(instancePath)) {
                 closeLocked();
+                File databaseFile = new File(path);
+                if (databaseFile.isFile()) {
+                    Log.i(TAG, "Opening local audio database " + path + " (" + databaseFile.length() + " bytes)");
+                } else {
+                    Log.w(TAG, "Local audio database not found at " + path);
+                }
                 instance = Room.databaseBuilder(context.getApplicationContext(), EntriesDatabase.class, path)
                         // Avoid -wal/-shm sidecars, which make swapping the database file harder.
                         .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
