@@ -1,5 +1,19 @@
 plugins {
     id 'com.android.application'
+    id 'com.diffplug.spotless' version '6.25.0'
+}
+
+// Formatting is enforced only for files changed since the upstream baseline, so the
+// existing codebase does not have to be reformatted all at once. Run `./gradlew spotlessApply`.
+spotless {
+    ratchetFrom 'origin/master'
+    java {
+        target 'src/**/*.java'
+        palantirJavaFormat()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }
 
 // Release signing is configured through keystore.properties in the repository root.

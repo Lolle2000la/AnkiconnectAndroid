@@ -2,11 +2,9 @@ package com.kamwithk.ankiconnectandroid.routing.database;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-
 import androidx.preference.PreferenceManager;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,8 +27,7 @@ public final class LocalAudioDatabase {
     private static EntriesDatabase instance;
     private static String instancePath;
 
-    private LocalAudioDatabase() {
-    }
+    private LocalAudioDatabase() {}
 
     /**
      * Resolves the database file from the {@code storage_location}/{@code storage_dir_path}
@@ -72,8 +69,7 @@ public final class LocalAudioDatabase {
         try {
             if (instance == null || !path.equals(instancePath)) {
                 closeLocked();
-                instance = Room.databaseBuilder(context.getApplicationContext(),
-                                EntriesDatabase.class, path)
+                instance = Room.databaseBuilder(context.getApplicationContext(), EntriesDatabase.class, path)
                         // Avoid -wal/-shm sidecars, which make swapping the database file harder.
                         .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
                         .build();

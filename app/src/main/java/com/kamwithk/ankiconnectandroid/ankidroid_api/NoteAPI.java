@@ -5,10 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.text.TextUtils;
-
 import com.ichi2.anki.FlashCardsContract;
 import com.ichi2.anki.api.AddContentApi;
-
 import java.util.*;
 
 public class NoteAPI {
@@ -18,7 +16,12 @@ public class NoteAPI {
 
     private static final String[] MODEL_PROJECTION = {FlashCardsContract.Note.MID};
     private static final String[] NOTE_ID_PROJECTION = {FlashCardsContract.Note._ID};
-    private static final String[] NOTES_INFO_PROJECTION = {FlashCardsContract.Note._ID, FlashCardsContract.Note.MID, FlashCardsContract.Note.TAGS, FlashCardsContract.Note.FLDS};
+    private static final String[] NOTES_INFO_PROJECTION = {
+        FlashCardsContract.Note._ID,
+        FlashCardsContract.Note.MID,
+        FlashCardsContract.Note.TAGS,
+        FlashCardsContract.Note.FLDS
+    };
 
     public NoteAPI(Context context) {
         this.context = context;
@@ -27,9 +30,9 @@ public class NoteAPI {
     }
 
     static String escapeQueryStr(String s) {
-      // first replace: \ -> \\
-      // second replace: " -> \"
-      return "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+        // first replace: \ -> \\
+        // second replace: " -> \"
+        return "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
 
     /**
@@ -37,7 +40,8 @@ public class NoteAPI {
      *
      * @param data Map of (field name, field value) pairs
      */
-    public Long addNote(final Map<String, String> data, Long deck_id, Long model_id, Set<String> tags) throws Exception {
+    public Long addNote(final Map<String, String> data, Long deck_id, Long model_id, Set<String> tags)
+            throws Exception {
         String[] allFieldNames = api.getFieldList(model_id);
         if (allFieldNames == null) {
             throw new Exception("Couldn't get fields");
@@ -88,7 +92,8 @@ public class NoteAPI {
             if (!cursor.moveToNext()) {
                 return null;
             }
-            int index = cursor.getColumnIndexOrThrow(FlashCardsContract.Note.MID);;
+            int index = cursor.getColumnIndexOrThrow(FlashCardsContract.Note.MID);
+            ;
             return cursor.getLong(index); // mid
         } finally {
             cursor.close();
@@ -98,13 +103,8 @@ public class NoteAPI {
     public ArrayList<Long> findNotes(String query) {
         ArrayList<Long> noteIds = new ArrayList<>();
 
-        final Cursor cursor = this.resolver.query(
-                FlashCardsContract.Note.CONTENT_URI,
-                NOTE_ID_PROJECTION,
-                query,
-                null,
-                null
-        );
+        final Cursor cursor =
+                this.resolver.query(FlashCardsContract.Note.CONTENT_URI, NOTE_ID_PROJECTION, query, null, null);
 
         if (cursor != null) {
             if (!cursor.moveToFirst()) {
@@ -138,6 +138,7 @@ public class NoteAPI {
             return order;
         }
     }
+
     static class NoteInfo {
         private final long noteId;
         private final String modelName;
@@ -145,8 +146,8 @@ public class NoteAPI {
         private final List<Long> cards;
         private final Map<String, NoteInfoField> fields;
 
-        public NoteInfo(long noteId, String modelName, List<String> tags, List<Long> cards,
-                Map<String, NoteInfoField> fields) {
+        public NoteInfo(
+                long noteId, String modelName, List<String> tags, List<Long> cards, Map<String, NoteInfoField> fields) {
             this.noteId = noteId;
             this.modelName = modelName;
             this.tags = tags;
@@ -205,13 +206,7 @@ public class NoteAPI {
         Map<Long, Model> cache = new HashMap<>();
 
         Cursor cursor = this.resolver.query(
-                FlashCardsContract.Note.CONTENT_URI,
-                NOTES_INFO_PROJECTION,
-                nidQuery,
-                null,
-                null,
-                null
-                );
+                FlashCardsContract.Note.CONTENT_URI, NOTES_INFO_PROJECTION, nidQuery, null, null, null);
 
         if (cursor == null) {
             return null;
@@ -233,8 +228,7 @@ public class NoteAPI {
 
                 if (cache.containsKey(mid)) {
                     model = cache.get(mid);
-                }
-                else {
+                } else {
                     String[] fieldNames = api.getFieldList(mid);
                     String modelName = api.getModelName(mid);
 

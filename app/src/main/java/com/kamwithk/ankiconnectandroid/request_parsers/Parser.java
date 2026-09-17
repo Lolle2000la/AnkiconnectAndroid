@@ -1,7 +1,6 @@
 package com.kamwithk.ankiconnectandroid.request_parsers;
 
 import android.util.Base64;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -9,16 +8,15 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
-
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class Parser {
-    public static Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
+    public static Gson gson =
+            new GsonBuilder().setPrettyPrinting().serializeNulls().create();
     public static Gson gsonNoSerialize = new GsonBuilder().setPrettyPrinting().create();
 
     public static JsonObject parse(String raw_data) {
@@ -37,11 +35,21 @@ public class Parser {
     }
 
     public static String getDeckName(JsonObject raw_data) {
-        return raw_data.get("params").getAsJsonObject().get("note").getAsJsonObject().get("deckName").getAsString();
+        return raw_data.get("params")
+                .getAsJsonObject()
+                .get("note")
+                .getAsJsonObject()
+                .get("deckName")
+                .getAsString();
     }
 
     public static String getModelName(JsonObject raw_data) {
-        return raw_data.get("params").getAsJsonObject().get("note").getAsJsonObject().get("modelName").getAsString();
+        return raw_data.get("params")
+                .getAsJsonObject()
+                .get("note")
+                .getAsJsonObject()
+                .get("modelName")
+                .getAsString();
     }
 
     public static String getModelNameFromParam(JsonObject raw_data) {
@@ -50,12 +58,24 @@ public class Parser {
 
     public static Map<String, String> getNoteValues(JsonObject raw_data) {
         Type fieldType = new TypeToken<Map<String, String>>() {}.getType();
-        return gson.fromJson(raw_data.get("params").getAsJsonObject().get("note").getAsJsonObject().get("fields"), fieldType);
+        return gson.fromJson(
+                raw_data.get("params")
+                        .getAsJsonObject()
+                        .get("note")
+                        .getAsJsonObject()
+                        .get("fields"),
+                fieldType);
     }
 
     public static Set<String> getNoteTags(JsonObject raw_data) {
         Type fieldType = new TypeToken<Set<String>>() {}.getType();
-        return gson.fromJson(raw_data.get("params").getAsJsonObject().get("note").getAsJsonObject().get("tags"), fieldType);
+        return gson.fromJson(
+                raw_data.get("params")
+                        .getAsJsonObject()
+                        .get("note")
+                        .getAsJsonObject()
+                        .get("tags"),
+                fieldType);
     }
 
     public static String getNoteQuery(JsonObject raw_data) {
@@ -63,12 +83,23 @@ public class Parser {
     }
 
     public static long getUpdateNoteFieldsId(JsonObject raw_data) {
-        return raw_data.get("params").getAsJsonObject().get("note").getAsJsonObject().get("id").getAsLong();
+        return raw_data.get("params")
+                .getAsJsonObject()
+                .get("note")
+                .getAsJsonObject()
+                .get("id")
+                .getAsLong();
     }
 
     public static Map<String, String> getUpdateNoteFieldsFields(JsonObject raw_data) {
         Type fieldType = new TypeToken<Map<String, String>>() {}.getType();
-        return gson.fromJson(raw_data.get("params").getAsJsonObject().get("note").getAsJsonObject().get("fields"), fieldType);
+        return gson.fromJson(
+                raw_data.get("params")
+                        .getAsJsonObject()
+                        .get("note")
+                        .getAsJsonObject()
+                        .get("fields"),
+                fieldType);
     }
 
     /**
@@ -79,20 +110,20 @@ public class Parser {
      */
     public static ArrayList<MediaRequest> getNoteMediaRequests(JsonObject raw_data) {
         Map<String, MediaRequest.MediaType> media_types = Map.of(
-            "audio", MediaRequest.MediaType.AUDIO,
-            "video", MediaRequest.MediaType.VIDEO,
-            "picture", MediaRequest.MediaType.PICTURE
-        );
-        JsonObject note_json = raw_data.get("params").getAsJsonObject().get("note").getAsJsonObject();
+                "audio", MediaRequest.MediaType.AUDIO,
+                "video", MediaRequest.MediaType.VIDEO,
+                "picture", MediaRequest.MediaType.PICTURE);
+        JsonObject note_json =
+                raw_data.get("params").getAsJsonObject().get("note").getAsJsonObject();
 
         ArrayList<MediaRequest> request_medias = new ArrayList<>();
-        for (Map.Entry<String, MediaRequest.MediaType> entry: media_types.entrySet()) {
+        for (Map.Entry<String, MediaRequest.MediaType> entry : media_types.entrySet()) {
             JsonElement media_value = note_json.get(entry.getKey());
             if (media_value == null) {
                 continue;
             }
             if (media_value.isJsonArray()) {
-                for (JsonElement media_element: media_value.getAsJsonArray()) {
+                for (JsonElement media_element : media_value.getAsJsonArray()) {
                     JsonObject media_object = media_element.getAsJsonObject();
                     MediaRequest requestMedia = MediaRequest.fromJson(media_object, entry.getValue());
                     request_medias.add(requestMedia);
@@ -121,7 +152,11 @@ public class Parser {
     }
 
     public static boolean[] getNoteTrues(JsonObject raw_data) {
-        int num_notes = raw_data.get("params").getAsJsonObject().get("notes").getAsJsonArray().size();
+        int num_notes = raw_data.get("params")
+                .getAsJsonObject()
+                .get("notes")
+                .getAsJsonArray()
+                .size();
         boolean[] array = new boolean[num_notes];
         Arrays.fill(array, true);
 
@@ -130,8 +165,9 @@ public class Parser {
 
     public static ArrayList<Long> getNoteIds(JsonObject raw_data) {
         ArrayList<Long> noteIds = new ArrayList<>();
-        JsonArray jsonNoteIds = raw_data.get("params").getAsJsonObject().get("notes").getAsJsonArray();
-        for(JsonElement noteId: jsonNoteIds) {
+        JsonArray jsonNoteIds =
+                raw_data.get("params").getAsJsonObject().get("notes").getAsJsonArray();
+        for (JsonElement noteId : jsonNoteIds) {
             noteIds.add(noteId.getAsLong());
         }
         return noteIds;
@@ -140,8 +176,9 @@ public class Parser {
     /** Reads the {@code params.cards} array used by AnkiConnect's {@code suspend} action. */
     public static ArrayList<Long> getCardIds(JsonObject raw_data) {
         ArrayList<Long> cardIds = new ArrayList<>();
-        JsonArray jsonCardIds = raw_data.get("params").getAsJsonObject().get("cards").getAsJsonArray();
-        for(JsonElement cardId: jsonCardIds) {
+        JsonArray jsonCardIds =
+                raw_data.get("params").getAsJsonObject().get("cards").getAsJsonArray();
+        for (JsonElement cardId : jsonCardIds) {
             cardIds.add(cardId.getAsLong());
         }
         return cardIds;
@@ -160,4 +197,3 @@ public class Parser {
         return raw_data.get("params").getAsJsonObject().get("actions").getAsJsonArray();
     }
 }
-

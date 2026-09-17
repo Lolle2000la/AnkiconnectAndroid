@@ -4,9 +4,7 @@ import static fi.iki.elonen.NanoHTTPD.newFixedLengthResponse;
 
 import android.content.Context;
 import android.util.Log;
-
 import androidx.sqlite.db.SimpleSQLiteQuery;
-
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.kamwithk.ankiconnectandroid.request_parsers.Parser;
@@ -21,7 +19,7 @@ import com.kamwithk.ankiconnectandroid.routing.localaudiosource.JPodAudioSource;
 import com.kamwithk.ankiconnectandroid.routing.localaudiosource.LocalAudioSource;
 import com.kamwithk.ankiconnectandroid.routing.localaudiosource.NHK16AudioSource;
 import com.kamwithk.ankiconnectandroid.routing.localaudiosource.Shinmeikai8AudioSource;
-
+import fi.iki.elonen.NanoHTTPD;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -34,8 +32,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import fi.iki.elonen.NanoHTTPD;
 
 /**
  * Local audio in AnkidroidAndroid works similarly to the original python script found at
@@ -91,7 +87,6 @@ public class LocalAudioAPIRouting {
         List<Map<String, String>> audioSourcesResult = new ArrayList<>();
         List<String> args = new ArrayList<>();
 
-
         // opens database (creates if doesn't exist)
         EntriesDatabase db = getDB();
         EntryDao entryDao = db.entryDao();
@@ -99,8 +94,7 @@ public class LocalAudioAPIRouting {
         // query generator based off of the original plugin:
         // https://github.com/Aquafina-water-bottle/local-audio-yomichan/blob/master/plugin/db_utils.py
         // Filter results WHERE "title" = 'My Title'
-        String selection = "expression = ?\n" +
-                "AND (reading IS NULL OR reading = ?)\n";
+        String selection = "expression = ?\n" + "AND (reading IS NULL OR reading = ?)\n";
         args.add(term);
         args.add(reading);
 
@@ -137,9 +131,8 @@ public class LocalAudioAPIRouting {
             sortOrder.append(" END)\n");
         }
 
-        String queryString = "\n" +
-                "SELECT * FROM entries WHERE (" + selection + ")\n" +
-                "ORDER BY " + sortOrder + ", reading;";
+        String queryString =
+                "\n" + "SELECT * FROM entries WHERE (" + selection + ")\n" + "ORDER BY " + sortOrder + ", reading;";
 
         SimpleSQLiteQuery query = new SimpleSQLiteQuery(queryString, args.toArray());
         List<Entry> entries = entryDao.getSources(query);
@@ -171,19 +164,15 @@ public class LocalAudioAPIRouting {
         response.add("audioSources", Parser.gson.toJsonTree(audioSourcesResult, typeToken));
         Log.d("AnkiConnectAndroid", "audio sources json: " + Parser.gson.toJson(response));
 
-        return newFixedLengthResponse(
-                NanoHTTPD.Response.Status.OK,
-                "text/json",
-                Parser.gson.toJson(response)
-        );
+        return newFixedLengthResponse(NanoHTTPD.Response.Status.OK, "text/json", Parser.gson.toJson(response));
     }
 
     private NanoHTTPD.Response audioError(String msg) {
         Log.w("AnkiConnectAndroid", msg);
         return newFixedLengthResponse(
                 NanoHTTPD.Response.Status.BAD_REQUEST, // 400, mimics python script
-                NanoHTTPD.MIME_PLAINTEXT, msg
-        );
+                NanoHTTPD.MIME_PLAINTEXT,
+                msg);
     }
 
     private String getTerm(Map<String, List<String>> parameters) {
@@ -228,8 +217,7 @@ public class LocalAudioAPIRouting {
         String pathDecoded = path;
         try {
             pathDecoded = URLDecoder.decode(pathDecoded, "UTF-8");
-        }
-        catch (UnsupportedEncodingException ignored) {
+        } catch (UnsupportedEncodingException ignored) {
         }
 
         byte[] data = audioFileEntryDao.getData(pathDecoded, source);
@@ -255,7 +243,7 @@ public class LocalAudioAPIRouting {
         if (mimeType == null) {
             return audioError("File is not a supported audio file: " + path);
         }
-        return newFixedLengthResponse(NanoHTTPD.Response.Status.OK, mimeType, new ByteArrayInputStream(data), data.length);
-
+        return newFixedLengthResponse(
+                NanoHTTPD.Response.Status.OK, mimeType, new ByteArrayInputStream(data), data.length);
     }
 }

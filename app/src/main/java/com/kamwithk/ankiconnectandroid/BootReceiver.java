@@ -3,7 +3,6 @@ package com.kamwithk.ankiconnectandroid;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-
 import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
@@ -24,8 +23,8 @@ public class BootReceiver extends BroadcastReceiver {
             return;
         }
 
-        boolean startOnBoot = PreferenceManager.getDefaultSharedPreferences(context)
-                .getBoolean("start_on_boot", true);
+        boolean startOnBoot =
+                PreferenceManager.getDefaultSharedPreferences(context).getBoolean("start_on_boot", true);
         if (!startOnBoot) {
             return;
         }

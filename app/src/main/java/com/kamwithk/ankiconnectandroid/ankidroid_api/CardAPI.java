@@ -5,9 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-
 import com.ichi2.anki.FlashCardsContract;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,10 +21,7 @@ public class CardAPI {
     private static final int ORD_BITS = 10;
     private static final long ORD_MASK = (1L << ORD_BITS) - 1;
 
-    private static final String[] CARD_PROJECTION = {
-            FlashCardsContract.Card.NOTE_ID,
-            FlashCardsContract.Card.CARD_ORD
-    };
+    private static final String[] CARD_PROJECTION = {FlashCardsContract.Card.NOTE_ID, FlashCardsContract.Card.CARD_ORD};
 
     private final ContentResolver resolver;
     private final NoteAPI noteAPI;

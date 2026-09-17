@@ -1,5 +1,7 @@
 package com.kamwithk.ankiconnectandroid;
 
+import static com.kamwithk.ankiconnectandroid.MainActivity.CHANNEL_ID;
+
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -10,10 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import com.kamwithk.ankiconnectandroid.routing.Router;
 import com.kamwithk.ankiconnectandroid.routing.database.LocalAudioDatabase;
-
 import java.io.IOException;
-
-import static com.kamwithk.ankiconnectandroid.MainActivity.CHANNEL_ID;
 
 public class Service extends android.app.Service {
     public static final int PORT = 8765;
@@ -38,7 +37,8 @@ public class Service extends android.app.Service {
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+            pendingIntent = PendingIntent.getActivity(
+                    this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         } else {
             pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         }

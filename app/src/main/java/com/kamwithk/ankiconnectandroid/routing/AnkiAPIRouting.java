@@ -1,5 +1,8 @@
 package com.kamwithk.ankiconnectandroid.routing;
 
+import static fi.iki.elonen.NanoHTTPD.newFixedLengthResponse;
+
+import android.util.Log;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -9,23 +12,16 @@ import com.kamwithk.ankiconnectandroid.ankidroid_api.DeckAPI;
 import com.kamwithk.ankiconnectandroid.ankidroid_api.IntegratedAPI;
 import com.kamwithk.ankiconnectandroid.ankidroid_api.MediaAPI;
 import com.kamwithk.ankiconnectandroid.ankidroid_api.ModelAPI;
+import com.kamwithk.ankiconnectandroid.request_parsers.MediaRequest;
 import com.kamwithk.ankiconnectandroid.request_parsers.NoteRequest;
 import com.kamwithk.ankiconnectandroid.request_parsers.Parser;
-import com.kamwithk.ankiconnectandroid.request_parsers.MediaRequest;
-
 import fi.iki.elonen.NanoHTTPD;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
-import static fi.iki.elonen.NanoHTTPD.newFixedLengthResponse;
-
-import android.util.Log;
-
 
 public class AnkiAPIRouting {
     private final IntegratedAPI integratedAPI;
@@ -115,7 +111,8 @@ public class AnkiAPIRouting {
     public NanoHTTPD.Response findRouteHandleError(JsonObject raw_json) {
         try {
             int version = Parser.get_version(raw_json, 4);
-            String response = formatSuccessReply(JsonParser.parseString(findRoute(raw_json)), version).toString();
+            String response = formatSuccessReply(JsonParser.parseString(findRoute(raw_json)), version)
+                    .toString();
             Log.d("AnkiConnectAndroid", "response json: " + response);
             return returnResponse(response);
         } catch (Exception e) {
@@ -217,16 +214,11 @@ public class AnkiAPIRouting {
     private String addNote(JsonObject raw_json) throws Exception {
         Map<String, String> noteValues = Parser.getNoteValues(raw_json);
 
-        ArrayList<MediaRequest> mediaRequests =
-                Parser.getNoteMediaRequests(raw_json);
+        ArrayList<MediaRequest> mediaRequests = Parser.getNoteMediaRequests(raw_json);
         integratedAPI.addMedia(noteValues, mediaRequests);
 
         String noteId = String.valueOf(integratedAPI.addNote(
-                noteValues,
-                Parser.getDeckName(raw_json),
-                Parser.getModelName(raw_json),
-                Parser.getNoteTags(raw_json)
-        ));
+                noteValues, Parser.getDeckName(raw_json), Parser.getModelName(raw_json), Parser.getNoteTags(raw_json)));
 
         return noteId;
     }
@@ -235,8 +227,7 @@ public class AnkiAPIRouting {
         integratedAPI.updateNoteFields(
                 Parser.getUpdateNoteFieldsId(raw_json),
                 Parser.getUpdateNoteFieldsFields(raw_json),
-                Parser.getNoteMediaRequests(raw_json)
-        );
+                Parser.getNoteMediaRequests(raw_json));
         return "null";
     }
 

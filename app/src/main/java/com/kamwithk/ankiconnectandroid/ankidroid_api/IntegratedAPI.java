@@ -1,5 +1,7 @@
 package com.kamwithk.ankiconnectandroid.ankidroid_api;
 
+import static com.ichi2.anki.api.AddContentApi.READ_WRITE_PERMISSION;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -12,16 +14,12 @@ import android.text.TextUtils;
 import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
-import java.io.IOException;
-import java.util.*;
-
-import static com.ichi2.anki.api.AddContentApi.READ_WRITE_PERMISSION;
-
-import com.kamwithk.ankiconnectandroid.request_parsers.MediaRequest;
 import com.ichi2.anki.FlashCardsContract;
 import com.ichi2.anki.api.AddContentApi;
+import com.kamwithk.ankiconnectandroid.request_parsers.MediaRequest;
 import com.kamwithk.ankiconnectandroid.request_parsers.NoteRequest;
+import java.io.IOException;
+import java.util.*;
 
 public class IntegratedAPI {
     private Context context;
@@ -32,8 +30,9 @@ public class IntegratedAPI {
     public final MediaAPI mediaAPI;
     private final AddContentApi api; // TODO: Combine all API classes???
 
-    //From anki-connect repo
+    // From anki-connect repo
     private static final String CAN_ADD_ERROR_REASON = "cannot create note because it is a duplicate";
+
     public IntegratedAPI(Context context) {
         this.context = context;
 
@@ -50,13 +49,13 @@ public class IntegratedAPI {
         int permission = ContextCompat.checkSelfPermission(context, READ_WRITE_PERMISSION);
 
         if (permission != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions((Activity)context, new String[]{READ_WRITE_PERMISSION}, 0);
+            ActivityCompat.requestPermissions((Activity) context, new String[] {READ_WRITE_PERMISSION}, 0);
         }
     }
 
-    //public File getExternalFilesDir() {
+    // public File getExternalFilesDir() {
     //    return context.getExternalFilesDir(null);
-    //}
+    // }
 
     public void addSampleCard() {
         Map<String, String> data = new HashMap<>();
@@ -73,7 +72,7 @@ public class IntegratedAPI {
     public ArrayList<Boolean> canAddNotes(ArrayList<NoteRequest> notesToTest) throws Exception {
         final String[] NOTE_PROJECTION = {FlashCardsContract.Note._ID, FlashCardsContract.Note.CSUM};
 
-        if(notesToTest.isEmpty()) {
+        if (notesToTest.isEmpty()) {
             return new ArrayList<>();
         }
 
@@ -86,12 +85,11 @@ public class IntegratedAPI {
         HashSet<Long> deckIds = new HashSet<>();
         Map<String, Long> deckNamesToIds = deckAPI.deckNamesAndIds();
         String deckName = noteOptions.getDeckName();
-        if(deckName == null) {
+        if (deckName == null) {
             // Deck, not root
             deckName = notesToTest.get(0).getDeckName();
             deckIds.add(deckNamesToIds.get(deckName));
-        }
-        else {
+        } else {
             for (String name : deckNamesToIds.keySet()) {
                 if (name.contains(deckName)) {
                     deckIds.add(deckNamesToIds.get(name));
@@ -106,7 +104,7 @@ public class IntegratedAPI {
 
         // If duplicates are allowed, just need to see if they are valid notes (checksum != 0)
         if (noteOptions.isAllowDuplicate()) {
-            for (long checksum: checksums) {
+            for (long checksum : checksums) {
                 canAddNote.add(checksum != 0);
             }
             return canAddNote;
@@ -121,37 +119,21 @@ public class IntegratedAPI {
 
         String selectionQuery = "";
         if (!noteOptions.isCheckAllModels()) {
-            selectionQuery = String.format(
-                    Locale.US,
-                    "%s=%d and ",
-                    FlashCardsContract.Note.MID,
-                    modelId
-            );
+            selectionQuery = String.format(Locale.US, "%s=%d and ", FlashCardsContract.Note.MID, modelId);
         }
-        selectionQuery = selectionQuery + String.format(
-                Locale.US,
-                "%s in (%s)",
-                FlashCardsContract.Note.CSUM,
-                TextUtils.join(",", checksums)
-        );
+        selectionQuery = selectionQuery
+                + String.format(Locale.US, "%s in (%s)", FlashCardsContract.Note.CSUM, TextUtils.join(",", checksums));
 
-        final Cursor cursor = context.getContentResolver().query(
-                FlashCardsContract.Note.CONTENT_URI_V2,
-                NOTE_PROJECTION,
-                selectionQuery,
-                null,
-                null
-        );
+        final Cursor cursor = context.getContentResolver()
+                .query(FlashCardsContract.Note.CONTENT_URI_V2, NOTE_PROJECTION, selectionQuery, null, null);
 
         if (cursor == null || cursor.getCount() == 0) {
             for (int i = 0; i < notesToTest.size(); i++) {
                 canAddNote.add(true);
             }
-        }
-        else {
-            LinkedHashSet<Long> queryChecksums = findChecksumsInQuery(
-                    cursor,
-                    noteOptions.getDuplicateScope().equals("deck"), deckIds);
+        } else {
+            LinkedHashSet<Long> queryChecksums =
+                    findChecksumsInQuery(cursor, noteOptions.getDuplicateScope().equals("deck"), deckIds);
 
             for (int i = 0; i < checksums.size(); i++) {
                 boolean isChecksumFound = !queryChecksums.contains(checksums.get(i));
@@ -192,17 +174,11 @@ public class IntegratedAPI {
 
         Uri noteUri = Uri.withAppendedPath(FlashCardsContract.Note.CONTENT_URI, Long.toString(noteId));
         Uri cardUri = Uri.withAppendedPath(noteUri, "cards");
-        Cursor cardCursor = context.getContentResolver().query(
-                cardUri,
-                CARD_PROJECTION,
-                null,
-                null,
-                null
-        );
+        Cursor cardCursor = context.getContentResolver().query(cardUri, CARD_PROJECTION, null, null, null);
 
-        if(cardCursor != null) {
+        if (cardCursor != null) {
             try (cardCursor) {
-                while(cardCursor.moveToNext()) {
+                while (cardCursor.moveToNext()) {
                     int didIdx = cardCursor.getColumnIndexOrThrow(FlashCardsContract.Card.DECK_ID);
                     long did = cardCursor.getLong(didIdx);
 
@@ -242,8 +218,7 @@ public class IntegratedAPI {
             CanAddWithError canAddWithError;
             if (canAdd) {
                 canAddWithError = new CanAddWithError(true, null);
-            }
-            else {
+            } else {
                 canAddWithError = new CanAddWithError(false, CAN_ADD_ERROR_REASON);
             }
             canAddWithErrorList.add(canAddWithError);
@@ -257,16 +232,20 @@ public class IntegratedAPI {
      * @param data Map of (field name, field value) pairs
      * @return The id of the note added
      */
-    public Long addNote(final Map<String, String> data, String deck_name, String model_name, Set<String> tags) throws Exception {
+    public Long addNote(final Map<String, String> data, String deck_name, String model_name, Set<String> tags)
+            throws Exception {
         Long deck_id = deckAPI.getDeckID(deck_name);
         Long model_id = modelAPI.getModelID(model_name, data.size());
         Long note_id = noteAPI.addNote(data, deck_id, model_id, tags);
 
         if (note_id != null) {
-            new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(context, "Card added", Toast.LENGTH_SHORT).show());
+            new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(context, "Card added", Toast.LENGTH_SHORT)
+                    .show());
             return note_id;
         } else {
-            new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(context, "Failed to add card", Toast.LENGTH_SHORT).show());
+            new Handler(Looper.getMainLooper())
+                    .post(() -> Toast.makeText(context, "Failed to add card", Toast.LENGTH_SHORT)
+                            .show());
             throw new Exception("Couldn't add note");
         }
     }
@@ -289,7 +268,8 @@ public class IntegratedAPI {
             } else if (url.isPresent()) {
                 stored_filename = mediaAPI.downloadAndStoreBinaryFile(media.getFilename(), url.get());
             } else {
-                throw new Exception("You must provide a \"data\" or \"url\" field. Note that \"path\" is currently not supported on AnkiConnectAndroid.");
+                throw new Exception(
+                        "You must provide a \"data\" or \"url\" field. Note that \"path\" is currently not supported on AnkiConnectAndroid.");
             }
 
             String enclosed_filename = "";
@@ -315,7 +295,8 @@ public class IntegratedAPI {
         }
     }
 
-    public void updateNoteFields(long note_id, Map<String, String> newFields, ArrayList<MediaRequest> mediaRequests) throws Exception {
+    public void updateNoteFields(long note_id, Map<String, String> newFields, ArrayList<MediaRequest> mediaRequests)
+            throws Exception {
         /*
          * updateNoteFields request looks like:
          * id: int,
@@ -380,7 +361,8 @@ public class IntegratedAPI {
         // FLAG_ACTIVITY_CLEAR_TOP also allows the browser window to refresh with the new word
         // if AnkiDroid was already on the card browser activity.
         // see: https://stackoverflow.com/a/23874622
-        webIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
+        webIntent.setFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
         context.startActivity(webIntent);
 
         // The result doesn't seem to be used by Yomichan at all, so it can be safely ignored.
@@ -389,4 +371,3 @@ public class IntegratedAPI {
         return new ArrayList<>();
     }
 }
-
