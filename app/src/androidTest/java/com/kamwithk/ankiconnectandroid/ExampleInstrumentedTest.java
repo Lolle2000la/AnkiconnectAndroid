@@ -20,6 +20,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("com.kamwithk.ankiconnectandroid", appContext.getPackageName());
+        assertEquals("com.lolle2000la.ankiconnectandroid", appContext.getPackageName());
     }
 }

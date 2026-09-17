@@ -9,6 +9,13 @@ Forvo and local audio are now supported!
 Ankiconnect Android is a from scratch unofficial reimplementation of the [desktop Ankiconnect extension](https://github.com/FooSoft/anki-connect), [desktop Forvo Server extension](https://github.com/jamesnicolas/yomichan-forvo-server) and [desktop Local Audio Server for Yomitan](https://github.com/themoeway/local-audio-yomichan).
 It reimplements the core APIs used by Yomitan to work with [Ankidroid](https://github.com/ankidroid/Anki-Android/).
 
+> **Note:** This is a personal vendor fork of the original
+> [KamWithK/AnkiconnectAndroid](https://github.com/KamWithK/AnkiconnectAndroid),
+> which is no longer actively developed. It installs under a distinct
+> `applicationId` (`com.lolle2000la.ankiconnectandroid`) and is distributed via
+> this repository's GitHub Releases. See [docs/self-hosting.md](./docs/self-hosting.md)
+> for the signing and update setup.
+
 ## Table of Contents
 - [Ankiconnect Android](#ankiconnect-android)
   - [Table of Contents](#table-of-contents)
@@ -34,7 +41,7 @@ Here's how to set everything up from scratch (if you've already got Yomitan work
 
 1. Install [Firefox Browser](https://play.google.com/store/apps/details?id=org.mozilla.firefox)
 2. Install [Ankidroid](https://play.google.com/store/apps/details?id=com.ichi2.anki)
-3. Install Ankiconnect Android - Download from the [Releases Section](https://github.com/KamWithK/AnkiconnectAndroid/releases/latest) or from [IzzyOnDroid repo](https://apt.izzysoft.de/fdroid/index/apk/com.kamwithk.ankiconnectandroid)
+3. Install Ankiconnect Android (Lolle) - Download the latest APK from this fork's [Releases Section](https://github.com/Lolle2000la/AnkiconnectAndroid/releases/latest), or set up automatic updates with [Obtainium](https://github.com/ImranR98/Obtainium) (see [docs/self-hosting.md](./docs/self-hosting.md))
 4. Start the Ankiconnect Android app, accept the permissions and hit start service
 5. Install the [Yomitan extension](https://addons.mozilla.org/en-US/firefox/addon/yomitan/) in Firefox Browser
 6. Configure Yomitan general settings
@@ -141,13 +148,13 @@ can be found within the above link.
 
     * Locate AnkiConnect Android's data folder. By default, it is under:
         ```
-        (phone)/Android/data/com.kamwithk.ankiconnectandroid/files/
+        (phone)/Android/data/com.lolle2000la.ankiconnectandroid/files/
         ```
         However, one can verify the location of the folder by going into the settings
         (gear at the top right corner), and tapping on `Print Local Audio Directory`.
         The following output specifies that the folder is indeed in the default position:
         ```
-        /storage/emulated/0/Android/data/com.kamwithk.ankiconnectandroid/files/
+        /storage/emulated/0/Android/data/com.lolle2000la.ankiconnectandroid/files/
         ```
       
     * Alternatively locate a different folder. This will require later customisation.
@@ -161,7 +168,7 @@ can be found within the above link.
         * Do NOT copy the entire `user_files` folder.
         * After copying the file, this should result in the following:
             ```
-            /storage/emulated/0/Android/data/com.kamwithk.ankiconnectandroid/files/android.db
+            /storage/emulated/0/Android/data/com.lolle2000la.ankiconnectandroid/files/android.db
             ```
     * If you chose a different folder than the default, additional customisation is necessary on the settings page.
         * Locate the `Local Audio Settings` section
@@ -169,7 +176,7 @@ can be found within the above link.
           * The first option will always be the internal storage. If you think you have more than one storage device, it may be that android treats it as one, in which case there will only be one option.
         * If you selected a different directory such as `Documents`, `Audio` etc, you may need to update the `Choose Local Audio Directory` setting.
           * If you selected a user-owned directory like the aforementioned `Documents`, `Audio` and similar, you may also need to allow `Manage All Files` permission for Ankiconnect Android.
-          * The `Manage All Files` permission is only necessary for folders outside of the app-owned `/Android/data/com.kamwithk.ankiconnectandroid/` directory.
+          * The `Manage All Files` permission is only necessary for folders outside of the app-owned `/Android/data/com.lolle2000la.ankiconnectandroid/` directory.
         * If you make a mistake you can always reset the settings using `Reset Local Audio settings`. This will reset all the local audio settings and revert it to the default.
 
 4. Setup local audio on Firefox Browser's Yomitan. (Warning: this URL is different than the one on desktop!)
@@ -205,7 +212,7 @@ can be found within the above link.
 ### First Steps
 If you are having issues with anything, such as Yomitan being unable to connect to AnkiDroid, please ensure all these steps are followed before continuing:
 
-* Make sure the latest [app release](https://github.com/KamWithK/AnkiconnectAndroid/releases/latest) is installed.
+* Make sure the latest [app release](https://github.com/Lolle2000la/AnkiconnectAndroid/releases/latest) is installed.
 * If you imported the settings from the PC, try to use the sanitized version upon import, and manually re-add the handlebars after.
 * Double check that your Yomitan settings are correct. In particular, check that the `Configure Anki card format...` section, and the audio sources section is correct.
     * On rare occasions, settings exported from the computer and imported into your Android device may not work. Instead, try to reset Yomitan's settings and redo everything from scratch.
@@ -287,6 +294,8 @@ Some examples:
 
 ## Developer Info
 For developers who are interested in using the API, please see [docs/api.md](./docs/api.md) for a list of all supported API calls.
+
+For building, signing, and self-hosted update channels, see [docs/self-hosting.md](./docs/self-hosting.md).
 
 ## Contributing
 The primary goal of Ankiconnect Android was to support card creation with Yomitan.

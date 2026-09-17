@@ -22,5 +22,6 @@ deploymentTargetDropDown.xml
 render.experimental.xml
 *.jks
 *.keystore
+keystore.properties
 *.hprof
 app/src/main/jniLibs/

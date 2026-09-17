@@ -2,15 +2,31 @@ plugins {
     id 'com.android.application'
 }
 
+// Release signing is configured through keystore.properties in the repository root.
+// The file is intentionally gitignored; see keystore.properties.example and
+// docs/self-hosting.md. Without it, `assembleRelease` produces an unsigned APK.
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+def hasReleaseSigning = keystorePropertiesFile.exists()
+
+// Continuous integration overrides these with -PversionCode=... / -PversionName=...
+def versionCodeOverride = project.findProperty("versionCode")
+def versionNameOverride = project.findProperty("versionName")
+
 android {
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.kamwithk.ankiconnectandroid"
+        // Distinct from the upstream com.kamwithk.ankiconnectandroid so this fork
+        // can be installed side by side and updated independently.
+        applicationId "com.lolle2000la.ankiconnectandroid"
         minSdk 26
         targetSdk 33
-        versionCode 15
-        versionName "1.15"
+        versionCode (versionCodeOverride != null ? versionCodeOverride.toInteger() : 15)
+        versionName (versionNameOverride != null ? versionNameOverride : "1.15")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -22,10 +38,24 @@ android {
 
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            release {
+                storeFile file(keystoreProperties["storeFile"])
+                storePassword keystoreProperties["storePassword"]
+                keyAlias keystoreProperties["keyAlias"]
+                keyPassword keystoreProperties["keyPassword"]
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 
