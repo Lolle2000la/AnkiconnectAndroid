@@ -12,19 +12,19 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
-
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
-
 import com.kamwithk.ankiconnectandroid.ankidroid_api.IntegratedAPI;
-
 
 public class MainActivity extends AppCompatActivity {
 
@@ -57,6 +57,13 @@ public class MainActivity extends AppCompatActivity {
     private NotificationManager notificationManager;
     private ActivityResultLauncher<String> requestPermissionLauncher;
 
+    private Button startButton;
+    private Button stopButton;
+    private ProgressBar serviceProgress;
+    private TextView serviceStatusText;
+
+    private final ServiceState.Listener serviceStateListener = this::onServiceStateChanged;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,9 +73,15 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.materialToolbar);
         setSupportActionBar(toolbar);
 
+        startButton = findViewById(R.id.start_service_button);
+        stopButton = findViewById(R.id.stop_service_button);
+        serviceProgress = findViewById(R.id.service_progress);
+        serviceStatusText = findViewById(R.id.service_status_text);
+
         IntegratedAPI.authenticate(this);
 
-        NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID, "Ankiconnect Android", NotificationManager.IMPORTANCE_DEFAULT);
+        NotificationChannel notificationChannel =
+                new NotificationChannel(CHANNEL_ID, "Ankiconnect Android", NotificationManager.IMPORTANCE_DEFAULT);
         notificationManager = getSystemService(NotificationManager.class);
         notificationManager.createNotificationChannel(notificationChannel);
 
@@ -77,10 +90,50 @@ public class MainActivity extends AppCompatActivity {
         requestPermissionLauncher =
                 registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                     if (!isGranted) {
-                        Toast.makeText(this, "Attempting to start server without notification...", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "Attempting to start server without notification...", Toast.LENGTH_LONG)
+                                .show();
                     }
                     startService();
                 });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        ServiceState.addListener(serviceStateListener);
+    }
+
+    @Override
+    protected void onStop() {
+        ServiceState.removeListener(serviceStateListener);
+        super.onStop();
+    }
+
+    private void onServiceStateChanged(ServiceState.State state) {
+        boolean stopped = state == ServiceState.State.STOPPED;
+        boolean running = state == ServiceState.State.RUNNING;
+        boolean busy = state == ServiceState.State.STARTING || state == ServiceState.State.STOPPING;
+
+        startButton.setVisibility(stopped ? View.VISIBLE : View.GONE);
+        stopButton.setVisibility(running ? View.VISIBLE : View.GONE);
+        serviceProgress.setVisibility(busy ? View.VISIBLE : View.GONE);
+
+        int statusRes;
+        switch (state) {
+            case STARTING:
+                statusRes = R.string.service_status_starting;
+                break;
+            case RUNNING:
+                statusRes = R.string.service_status_running;
+                break;
+            case STOPPING:
+                statusRes = R.string.service_status_stopping;
+                break;
+            default:
+                statusRes = R.string.service_status_stopped;
+                break;
+        }
+        serviceStatusText.setText(statusRes);
     }
 
     @Override
@@ -123,24 +176,31 @@ public class MainActivity extends AppCompatActivity {
         // this method returns false.
         if (shouldShowRequestPermissionRationale(POST_NOTIFICATIONS)) {
             // Explain that notifications are "needed" to display the server
-            new NotificationsPermissionDialogFragment().show(this.getSupportFragmentManager(), "post_notifications_dialog");
+            new NotificationsPermissionDialogFragment()
+                    .show(this.getSupportFragmentManager(), "post_notifications_dialog");
         } else {
             // Directly ask for the permission.
             requestPermissionLauncher.launch(POST_NOTIFICATIONS);
         }
-
     }
 
     public void startServiceWithoutNotifications() {
-        Toast.makeText(this, "Attempting to start server without notification...", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Attempting to start server without notification...", Toast.LENGTH_LONG)
+                .show();
         startService();
     }
 
     public void startService() {
+        ServiceState.set(ServiceState.State.STARTING);
         Intent serviceIntent = new Intent(this, Service.class);
-        ContextCompat.startForegroundService(this, serviceIntent);
+        try {
+            ContextCompat.startForegroundService(this, serviceIntent);
+        } catch (RuntimeException e) {
+            ServiceState.set(ServiceState.State.STOPPED);
+            Toast.makeText(this, "Could not start the server: " + e.getMessage(), Toast.LENGTH_LONG)
+                    .show();
+        }
     }
-
 
     public void startServiceBtn(View view) {
         boolean notificationsEnabled = notificationManager.areNotificationsEnabled();
@@ -152,7 +212,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void stopServiceBtn(View view) {
+        ServiceState.set(ServiceState.State.STOPPING);
         Intent serviceIntent = new Intent(this, Service.class);
-        stopService(serviceIntent);
+        if (!stopService(serviceIntent)) {
+            // The service was not running after all.
+            ServiceState.set(ServiceState.State.STOPPED);
+        }
     }
 }

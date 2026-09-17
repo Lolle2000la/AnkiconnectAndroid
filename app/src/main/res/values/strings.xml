@@ -2,6 +2,12 @@
     <string name="app_name">Ankiconnect Android (Lolle)</string>
 
     <string name="action_settings">Settings</string>
+    <string name="action_start_service">Start Service</string>
+    <string name="action_stop_service">Stop Service</string>
+    <string name="service_status_stopped">Server stopped</string>
+    <string name="service_status_starting">Starting server…</string>
+    <string name="service_status_running">Server running</string>
+    <string name="service_status_stopping">Stopping server…</string>
     <string name="settings_overlay_permissions_title">Access Overlay Permissions</string>
     <string name="settings_permissions_header">Permissions</string>
     <string name="settings_overlay_permissions_summary">Allows Ankiconnect Android to open AnkiDroid\'s card browser.</string>

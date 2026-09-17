@@ -22,6 +22,7 @@ public class Service extends android.app.Service {
     @Override
     public void onCreate() { // Only one time
         super.onCreate();
+        ServiceState.set(ServiceState.State.STARTING);
 
         try {
             server = new Router(PORT, this);
@@ -51,6 +52,7 @@ public class Service extends android.app.Service {
                 .build();
 
         startForeground(1, notification);
+        ServiceState.set(ServiceState.State.RUNNING);
 
         return START_STICKY;
     }
@@ -61,6 +63,7 @@ public class Service extends android.app.Service {
             server.stop();
         }
         LocalAudioDatabase.invalidate();
+        ServiceState.set(ServiceState.State.STOPPED);
         super.onDestroy();
     }
 

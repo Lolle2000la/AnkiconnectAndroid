@@ -48,16 +48,34 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <Button
+                android:id="@+id/start_service_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:onClick="startServiceBtn"
-                android:text="Start Service" />
+                android:text="@string/action_start_service" />
 
             <Button
+                android:id="@+id/stop_service_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:onClick="stopServiceBtn"
-                android:text="Stop Service" />
+                android:text="@string/action_stop_service"
+                android:visibility="gone" />
+
+            <ProgressBar
+                android:id="@+id/service_progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:indeterminate="true"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/service_status_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/service_status_stopped" />
 
 
         </LinearLayout>
