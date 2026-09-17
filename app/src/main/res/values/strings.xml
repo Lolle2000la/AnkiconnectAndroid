@@ -9,6 +9,8 @@
     <string name="settings_overlay_permissions_summary">Allows Ankiconnect Android to open AnkiDroid\'s card browser.</string>
     <string name="settings_preferred_storage_header">Local Audio Settings</string>
     <string name="settings_other_header">Other</string>
+    <string name="settings_start_on_boot_title">Start on boot</string>
+    <string name="settings_start_on_boot_summary">Automatically start the server after the device restarts.</string>
     <string name="settings_forvo_language_title">Forvo language</string>
     <string name="settings_forvo_language_summary">Sets the language to use for Forvo audio.</string>
     <string name="settings_forvo_language_dialog_title">Select Language</string>

@@ -9,6 +9,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import com.kamwithk.ankiconnectandroid.routing.Router;
+import com.kamwithk.ankiconnectandroid.routing.database.LocalAudioDatabase;
 
 import java.io.IOException;
 
@@ -56,7 +57,10 @@ public class Service extends android.app.Service {
 
     @Override
     public void onDestroy() {
-        server.stop();
+        if (server != null) {
+            server.stop();
+        }
+        LocalAudioDatabase.invalidate();
         super.onDestroy();
     }
 

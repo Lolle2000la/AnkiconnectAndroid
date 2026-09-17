@@ -91,6 +91,28 @@ The signed APK is written to
 apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk
 ```
 
+## Starting the service from ADB (or another app)
+
+The service is exported, so it can be started without opening the app. Note that the
+component is the application ID plus the Java package of the class:
+
+```bash
+adb shell am start-foreground-service \
+  com.lolle2000la.ankiconnectandroid/com.kamwithk.ankiconnectandroid.Service
+adb forward tcp:8765 tcp:8765
+curl 'http://localhost:8765/?action=version'
+```
+
+Stopping it:
+
+```bash
+adb shell am stop-service \
+  com.lolle2000la.ankiconnectandroid/com.kamwithk.ankiconnectandroid.Service
+```
+
+Because the foreground service is also started from `BOOT_COMPLETED`, the same
+component path applies to automation apps such as Tasker.
+
 ## Optional: self-hosted F-Droid repository
 
 The same signed APKs can feed a self-hosted F-Droid repository served from

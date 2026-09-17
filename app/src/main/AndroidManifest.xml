@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!--
         This permission is required to open another activity from an app in the background
         (i.e. AnkiConnectAndroid opening AnkiDroid when the kiwi browser is in focus)
@@ -55,7 +56,22 @@
                 android:resource="@xml/file_provider_paths" />
         </provider>
 
-        <service android:name=".Service" />
+        <!-- exported so it can be started from a host shell, e.g.
+             adb shell am start-foreground-service <applicationId>/com.kamwithk.ankiconnectandroid.Service -->
+        <service
+            android:name=".Service"
+            android:exported="true" />
+
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

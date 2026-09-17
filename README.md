@@ -43,6 +43,7 @@ Here's how to set everything up from scratch (if you've already got Yomitan work
 2. Install [Ankidroid](https://play.google.com/store/apps/details?id=com.ichi2.anki)
 3. Install Ankiconnect Android (Lolle) - Download the latest APK from this fork's [Releases Section](https://github.com/Lolle2000la/AnkiconnectAndroid/releases/latest), or set up automatic updates with [Obtainium](https://github.com/ImranR98/Obtainium) (see [docs/self-hosting.md](./docs/self-hosting.md))
 4. Start the Ankiconnect Android app, accept the permissions and hit start service
+    * Optional: enable `Start on boot` in the settings to start the server automatically after a restart.
 5. Install the [Yomitan extension](https://addons.mozilla.org/en-US/firefox/addon/yomitan/) in Firefox Browser
 6. Configure Yomitan general settings
     1. Ensure advanced settings is enabled (button at the bottom right corner)

@@ -3,11 +3,8 @@ package com.kamwithk.ankiconnectandroid.routing;
 import static fi.iki.elonen.NanoHTTPD.newFixedLengthResponse;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
 
-import androidx.preference.PreferenceManager;
-import androidx.room.Room;
 import androidx.sqlite.db.SimpleSQLiteQuery;
 
 import com.google.gson.JsonObject;
@@ -17,6 +14,7 @@ import com.kamwithk.ankiconnectandroid.routing.database.AudioFileEntryDao;
 import com.kamwithk.ankiconnectandroid.routing.database.EntriesDatabase;
 import com.kamwithk.ankiconnectandroid.routing.database.Entry;
 import com.kamwithk.ankiconnectandroid.routing.database.EntryDao;
+import com.kamwithk.ankiconnectandroid.routing.database.LocalAudioDatabase;
 import com.kamwithk.ankiconnectandroid.routing.localaudiosource.ForvoAudioSource;
 import com.kamwithk.ankiconnectandroid.routing.localaudiosource.JPodAltAudioSource;
 import com.kamwithk.ankiconnectandroid.routing.localaudiosource.JPodAudioSource;
@@ -29,9 +27,6 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.net.URLDecoder;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -80,23 +75,10 @@ public class LocalAudioAPIRouting {
     }
 
     private EntriesDatabase getDB() {
-        // TODO global instance?
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        final File externalFilesDir = context.getExternalFilesDir(null);
-        final String preferredStorageDevicePath = sharedPreferences.getString("storage_location", "");
-        final String preferredDirectoryPath = sharedPreferences.getString("storage_dir_path", "");
-
-        Path preferredPath = Paths.get(preferredStorageDevicePath, preferredDirectoryPath, "android.db");
-
-        // If the preferences point to a file store that no longer is available
-        // Attempt the default externalFilesDir set by the OS.
-        if (!Files.isReadable(preferredPath)){
-            preferredPath = Paths.get(externalFilesDir.getAbsolutePath(), "android.db");
-        }
-
-        EntriesDatabase db = Room.databaseBuilder(context,
-                EntriesDatabase.class, preferredPath.toString()).build();
-        return db;
+        // Reuse a single Room instance across requests instead of opening (and leaking)
+        // one per request; see LocalAudioDatabase.
+        File databaseFile = LocalAudioDatabase.resolveDatabaseFile(context);
+        return LocalAudioDatabase.get(context, databaseFile.getAbsolutePath());
     }
 
     public NanoHTTPD.Response getAudioSourcesHandleError(Map<String, List<String>> parameters) {
@@ -251,6 +233,9 @@ public class LocalAudioAPIRouting {
         }
 
         byte[] data = audioFileEntryDao.getData(pathDecoded, source);
+        if (data == null) {
+            return audioError("No audio data for source '" + source + "' and file '" + pathDecoded + "'");
+        }
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
         String mimeType = null;

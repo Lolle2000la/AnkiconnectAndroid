@@ -64,6 +64,13 @@
             app:iconSpaceReserved="false"
             app:title="@string/settings_other_header">
 
+        <CheckBoxPreference
+                app:iconSpaceReserved="false"
+                app:key="start_on_boot"
+                app:defaultValue="true"
+                app:title="@string/settings_start_on_boot_title"
+                app:summary="@string/settings_start_on_boot_summary" />
+
         <ListPreference
             app:iconSpaceReserved="false"
             app:key="forvo_language"
