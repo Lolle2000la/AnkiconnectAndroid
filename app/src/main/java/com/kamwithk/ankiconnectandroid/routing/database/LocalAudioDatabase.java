@@ -1,24 +1,21 @@
 package com.kamwithk.ankiconnectandroid.routing.database;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import androidx.preference.PreferenceManager;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Resolves the local-audio {@code android.db} location and owns the process-wide Room
  * instance for it.
  *
- * <p>Previously {@code LocalAudioAPIRouting} built a new Room database for every HTTP
- * request and never closed it, leaking native SQLite connections and file descriptors
- * until the local audio server started refusing requests. This class keeps a single
- * instance and only reopens it when the resolved file changes.
+ * <p>Databases live in the app-specific external files directory, which needs no storage
+ * permission, and are brought in through the in-app import (Storage Access Framework).
+ * Previously a new Room database was built for every HTTP request and never closed,
+ * leaking native SQLite connections and file descriptors until the local audio server
+ * started refusing requests. This class keeps a single instance and only reopens it when
+ * the resolved file changes.
  */
 public final class LocalAudioDatabase {
     public static final String DB_NAME = "android.db";
@@ -30,25 +27,15 @@ public final class LocalAudioDatabase {
     private LocalAudioDatabase() {}
 
     /**
-     * Resolves the database file from the {@code storage_location}/{@code storage_dir_path}
-     * preferences, falling back to the app-specific external files directory when the
-     * configured path is not readable.
+     * The only supported database location: {@code getExternalFilesDir(null)} (falling back
+     * to internal storage when external storage is unavailable).
      */
     public static File resolveDatabaseFile(Context context) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        String storageDevice = prefs.getString("storage_location", "");
-        String storageDir = prefs.getString("storage_dir_path", "");
-
-        Path preferred = Paths.get(storageDevice, storageDir, DB_NAME);
-        if (Files.isReadable(preferred)) {
-            return preferred.toFile();
-        }
-
         File externalFilesDir = context.getExternalFilesDir(null);
         if (externalFilesDir != null) {
             return new File(externalFilesDir, DB_NAME);
         }
-        return preferred.toFile();
+        return new File(context.getFilesDir(), DB_NAME);
     }
 
     /**

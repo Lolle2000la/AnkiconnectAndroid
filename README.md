@@ -160,14 +160,7 @@ can be found within the above link.
         adb push android.db /storage/emulated/0/Android/data/com.lolle2000la.ankiconnectandroid/files/android.db
         ```
     * Do NOT copy the entire `user_files` folder. If you previously had an `android.db`, delete `android.db-shm` and `android.db-wal` first.
-    * If you chose a different folder than the default, additional customisation is necessary on the settings page.
-        * Locate the `Local Audio Settings` section
-        * If you selected a different storage device such as an external SD card, you may need to update the `Choose Local Audio Storage Device` option.
-          * The first option will always be the internal storage. If you think you have more than one storage device, it may be that android treats it as one, in which case there will only be one option.
-        * If you selected a different directory such as `Documents`, `Audio` etc, you may need to update the `Choose Local Audio Directory` setting.
-          * If you selected a user-owned directory like the aforementioned `Documents`, `Audio` and similar, you may also need to allow `Manage All Files` permission for Ankiconnect Android.
-          * The `Manage All Files` permission is only necessary for folders outside of the app-owned `/Android/data/com.lolle2000la.ankiconnectandroid/` directory.
-        * If you make a mistake you can always reset the settings using `Reset Local Audio settings`. This will reset all the local audio settings and revert it to the default.
+    * The location is fixed; there is no setting to point the app elsewhere. Use the in-app import for everything except this manual fallback.
     </details>
 
 4. Setup local audio on Firefox Browser's Yomitan. (Warning: this URL is different than the one on desktop!)
