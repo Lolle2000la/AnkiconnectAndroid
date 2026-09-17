@@ -31,14 +31,14 @@ def versionCodeOverride = project.findProperty("versionCode")
 def versionNameOverride = project.findProperty("versionName")
 
 android {
-    compileSdk 33
+    compileSdk 37
 
     defaultConfig {
         // Distinct from the upstream com.kamwithk.ankiconnectandroid so this fork
         // can be installed side by side and updated independently.
         applicationId "com.lolle2000la.ankiconnectandroid"
         minSdk 26
-        targetSdk 33
+        targetSdk 37
         versionCode (versionCodeOverride != null ? versionCodeOverride.toInteger() : 15)
         versionName (versionNameOverride != null ? versionNameOverride : "1.15")
 
@@ -80,32 +80,36 @@ android {
         includeInBundle = false
     }
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_9
-        targetCompatibility JavaVersion.VERSION_1_9
+    buildFeatures {
+        buildConfig = true
     }
-    namespace 'com.kamwithk.ankiconnectandroid'
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    namespace = 'com.kamwithk.ankiconnectandroid'
 }
 
 dependencies {
 
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.core:core:1.9.0'
-    implementation 'com.google.android.material:material:1.8.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'com.google.code.gson:gson:2.9.0'
+    implementation 'androidx.appcompat:appcompat:1.8.0'
+    implementation 'androidx.core:core:1.19.0'
+    implementation 'com.google.android.material:material:1.14.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.2'
+    implementation 'com.google.code.gson:gson:2.14.0'
     implementation 'org.nanohttpd:nanohttpd:2.3.1'
     implementation 'org.nanohttpd:nanohttpd-nanolets:2.3.1'
-    implementation 'com.github.ankidroid:Anki-Android:2.17alpha14'
-    implementation 'org.jsoup:jsoup:1.14.3'
-    implementation 'androidx.preference:preference:1.2.0'
+    implementation 'com.github.ankidroid:Anki-Android:2.24.0'
+    implementation 'org.jsoup:jsoup:1.23.2'
+    implementation 'androidx.preference:preference:1.2.1'
 
-    def room_version = "2.5.0"
+    def room_version = "2.8.5"
     implementation "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
 
 
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.3.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
 }

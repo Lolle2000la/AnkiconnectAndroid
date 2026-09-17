@@ -4,6 +4,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!--
         This permission is required to open another activity from an app in the background
@@ -56,13 +58,23 @@
 
         <!-- exported so it can be started from a host shell, e.g.
              adb shell am start-foreground-service <applicationId>/com.kamwithk.ankiconnectandroid.Service -->
+        <!--
+            specialUse (rather than dataSync) so it can still be started from BOOT_COMPLETED
+            on Android 15+, where several foreground-service types are disallowed there.
+        -->
         <service
             android:name=".Service"
-            android:exported="true" />
+            android:exported="true"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="ankiConnectServer" />
+        </service>
 
         <service
             android:name=".LocalAudioImportService"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
         <receiver
             android:name=".BootReceiver"
