@@ -89,6 +89,7 @@ Do not expect the error message to be the exact same as the PC Anki-Connect erro
 
 ### `notesInfo`
 * See: [Anki-Connect `notesInfo`](https://git.sr.ht/~foosoft/anki-connect#codenotesinfocode)
+* `cards` is always an empty list: AnkiDroid does not expose real card IDs to third-party apps.
 * Used by Yomitan
 
 ### `addNote`
@@ -101,6 +102,28 @@ Do not expect the error message to be the exact same as the PC Anki-Connect erro
 ### `updateNoteFields`
 * See: [Anki-Connect `updateNoteFields`](https://git.sr.ht/~foosoft/anki-connect#codeupdatenotefieldscode)
 * See [addNote](#addnote) for supported media actions.
+
+<br>
+
+## Card Actions
+
+### `findCards`
+* See: [Anki-Connect `findCards`](https://git.sr.ht/~foosoft/anki-connect#codefindcardscode)
+* AnkiDroid does not expose real card IDs to third-party apps, so card IDs are synthesised from the
+    note ID and card ordinal. They are only meaningful within AnkiConnect Android (for example, to
+    pass to `suspend`).
+* The query is evaluated against notes, so card-only searches may behave differently than on desktop Anki.
+* Used by Yomitan (with the "Suspend new cards" setting)
+
+### `cardsInfo`
+* See: [Anki-Connect `cardsInfo`](https://git.sr.ht/~foosoft/anki-connect#codecardsinfocode)
+* Always returns an empty list, because AnkiDroid cannot provide the card data this action requires.
+* Used by Yomitan
+
+### `suspend`
+* See: [Anki-Connect `suspend`](https://git.sr.ht/~foosoft/anki-connect#codesuspendcode)
+* Accepts the synthesised card IDs returned by `findCards`.
+* Used by Yomitan (with the "Suspend new cards" setting)
 
 <br>
 
@@ -118,3 +141,8 @@ Do not expect the error message to be the exact same as the PC Anki-Connect erro
 ### `multi`
 * See: [Anki-Connect `multi`](https://git.sr.ht/~foosoft/anki-connect#codemulticode)
 * Used by Yomichan
+
+### `requestPermission`
+* See: [Anki-Connect `requestPermission`](https://git.sr.ht/~foosoft/anki-connect#coderequestpermissioncode)
+* Always grants permission (`{"permission": "granted", "requireApiKey": false, "version": 6}`); there is no API-key or origin concept on Android.
+* Used by KOReader's AnkiConnect plugin

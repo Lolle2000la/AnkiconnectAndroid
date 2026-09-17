@@ -41,7 +41,10 @@ public class AnkiAPIRouting {
     }
 
     private String findRoute(JsonObject raw_json) throws Exception {
-        switch (Parser.get_action(raw_json)) {
+        String action = Parser.get_action(raw_json);
+        switch (action) {
+            case "requestPermission":
+                return requestPermission();
             case "version":
                 return version();
             case "deckNames":
@@ -70,6 +73,12 @@ public class AnkiAPIRouting {
                 return storeMediaFile(raw_json);
             case "notesInfo":
                 return notesInfo(raw_json);
+            case "findCards":
+                return findCards(raw_json);
+            case "cardsInfo":
+                return cardsInfo(raw_json);
+            case "suspend":
+                return suspend(raw_json);
             case "multi":
                 JsonArray actions = Parser.getMultiActions(raw_json);
                 JsonArray results = new JsonArray();
@@ -85,7 +94,10 @@ public class AnkiAPIRouting {
 
                 return Parser.gson.toJson(results);
             default:
-                return default_version();
+                // AnkiConnect answers unknown actions with a JSON error object. Returning the
+                // plain-text "AnkiConnect v.6" here used to make callers fail with
+                // MalformedJsonException when they re-parsed the response as JSON.
+                throw new Exception("Unsupported action: " + action);
         }
     }
     /* taken from anki-connect's web.py: format_success_reply */
@@ -135,8 +147,16 @@ public class AnkiAPIRouting {
         return "6";
     }
 
-    private String default_version() {
-        return "AnkiConnect v.6";
+    /**
+     * AnkiDroid has no API-key/permission concept, so permission is always granted,
+     * matching the shape of desktop AnkiConnect's response.
+     */
+    private String requestPermission() {
+        JsonObject result = new JsonObject();
+        result.addProperty("permission", "granted");
+        result.addProperty("requireApiKey", false);
+        result.addProperty("version", 6);
+        return Parser.gson.toJson(result);
     }
 
     private String deckNames() throws Exception {
@@ -231,5 +251,25 @@ public class AnkiAPIRouting {
     private String notesInfo(JsonObject raw_json) throws Exception {
         ArrayList<Long> noteIds = Parser.getNoteIds(raw_json);
         return Parser.gson.toJson(integratedAPI.noteAPI.notesInfo(noteIds));
+    }
+
+    private String findCards(JsonObject raw_json) {
+        return Parser.gson.toJson(integratedAPI.cardAPI.findCards(Parser.getNoteQuery(raw_json)));
+    }
+
+    /**
+     * AnkiDroid does not expose real card IDs, so {@code notesInfo} reports an empty
+     * {@code cards} list and Yomitan only ever calls this with an empty list.
+     */
+    private String cardsInfo(JsonObject raw_json) {
+        return Parser.gson.toJson(new ArrayList<>());
+    }
+
+    /**
+     * AnkiConnect's {@code suspend} action, used by Yomitan's "Suspend new cards" setting.
+     * Card IDs are the synthesised IDs returned by {@link #findCards}.
+     */
+    private String suspend(JsonObject raw_json) {
+        return Parser.gson.toJson(integratedAPI.cardAPI.suspendCards(Parser.getCardIds(raw_json)));
     }
 }

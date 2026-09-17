@@ -142,13 +142,15 @@ public class NoteAPI {
         private final long noteId;
         private final String modelName;
         private final List<String> tags;
+        private final List<Long> cards;
         private final Map<String, NoteInfoField> fields;
 
-        public NoteInfo(long noteId, String modelName, List<String> tags, Map<String,
-                NoteInfoField> fields) {
+        public NoteInfo(long noteId, String modelName, List<String> tags, List<Long> cards,
+                Map<String, NoteInfoField> fields) {
             this.noteId = noteId;
             this.modelName = modelName;
             this.tags = tags;
+            this.cards = cards;
             this.fields = fields;
         }
 
@@ -162,6 +164,10 @@ public class NoteAPI {
 
         public List<String> getTags() {
             return tags;
+        }
+
+        public List<Long> getCards() {
+            return cards;
         }
 
         public Map<String, NoteInfoField> getFields() {
@@ -245,7 +251,10 @@ public class NoteAPI {
                     NoteInfoField noteInfoField = new NoteInfoField(fieldValue, i);
                     fields.put(fieldName, noteInfoField);
                 }
-                NoteInfo noteInfo = new NoteInfo(id, model.getModelName(), tags, fields);
+                // AnkiDroid does not expose real card IDs to third-party apps, so Yomitan
+                // gets an empty (but non-null) list. It must not be null: Gson serializes
+                // nulls here, which Yomitan rejects.
+                NoteInfo noteInfo = new NoteInfo(id, model.getModelName(), tags, Collections.emptyList(), fields);
                 notesInfoList.add(noteInfo);
             }
         }

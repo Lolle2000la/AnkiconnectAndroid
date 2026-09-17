@@ -137,6 +137,16 @@ public class Parser {
         return noteIds;
     }
 
+    /** Reads the {@code params.cards} array used by AnkiConnect's {@code suspend} action. */
+    public static ArrayList<Long> getCardIds(JsonObject raw_data) {
+        ArrayList<Long> cardIds = new ArrayList<>();
+        JsonArray jsonCardIds = raw_data.get("params").getAsJsonObject().get("cards").getAsJsonArray();
+        for(JsonElement cardId: jsonCardIds) {
+            cardIds.add(cardId.getAsLong());
+        }
+        return cardIds;
+    }
+
     public static String getMediaFilename(JsonObject raw_data) {
         return raw_data.get("params").getAsJsonObject().get("filename").getAsString();
     }
