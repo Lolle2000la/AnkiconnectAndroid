@@ -8,6 +8,7 @@
     <string name="service_status_starting">Starting server…</string>
     <string name="service_status_running">Server running</string>
     <string name="service_status_stopping">Stopping server…</string>
+    <string name="server_notification_paused">Paused while the screen is off</string>
     <string name="settings_overlay_permissions_title">Access Overlay Permissions</string>
     <string name="settings_permissions_header">Permissions</string>
     <string name="settings_overlay_permissions_summary">Allows Ankiconnect Android to open AnkiDroid\'s card browser.</string>
@@ -15,6 +16,8 @@
     <string name="settings_other_header">Other</string>
     <string name="settings_start_on_boot_title">Start on boot</string>
     <string name="settings_start_on_boot_summary">Automatically start the server after the device restarts.</string>
+    <string name="settings_pause_screen_off_title">Pause server when screen is off</string>
+    <string name="settings_pause_screen_off_summary">Stops listening while the screen is off to save battery and resumes when the screen turns back on. Requests made with the screen off will fail.</string>
     <string name="settings_battery_optimization_title">Disable battery optimization</string>
     <string name="settings_battery_optimization_summary_enabled">Battery optimization is on. Disable it so the server is less likely to be paused or killed in the background.</string>
     <string name="settings_battery_optimization_summary_disabled">Battery optimization is off. The server can keep running in the background.</string>

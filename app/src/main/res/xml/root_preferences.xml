@@ -59,6 +59,13 @@
                 app:title="@string/settings_start_on_boot_title"
                 app:summary="@string/settings_start_on_boot_summary" />
 
+        <CheckBoxPreference
+                app:iconSpaceReserved="false"
+                app:key="pause_server_when_screen_off"
+                app:defaultValue="false"
+                app:title="@string/settings_pause_screen_off_title"
+                app:summary="@string/settings_pause_screen_off_summary" />
+
         <Preference
                 app:iconSpaceReserved="false"
                 app:key="disable_battery_optimization"

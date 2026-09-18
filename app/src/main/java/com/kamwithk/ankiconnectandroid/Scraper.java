@@ -3,14 +3,7 @@ package com.kamwithk.ankiconnectandroid;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Base64;
-
 import androidx.preference.PreferenceManager;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -18,6 +11,10 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 // Regular expressions and method source - https://github.com/jamesnicolas/yomichan-forvo-server
 public class Scraper {
@@ -25,6 +22,10 @@ public class Scraper {
     private final String SERVER_HOST = "https://forvo.com";
     private final String AUDIO_HTTP_HOST = "https://audio00.forvo.com";
     private final String DEFAULT_FORVO_LANGUAGE = "ja";
+
+    // Jsoup defaults to 30s per request and scraping can issue up to four requests, so cap each one
+    // to keep a slow/unreachable Forvo from holding the radio awake for minutes.
+    private static final int TIMEOUT_MS = 10_000;
 
     public Scraper(Context context) {
         this.context = context;
@@ -36,7 +37,7 @@ public class Scraper {
 
         ArrayList<HashMap<String, String>> audio_sources = scrapeWord(word, forvoLanguage);
 
-//        Get similar words audio if exact word isn't found
+        //        Get similar words audio if exact word isn't found
         if (audio_sources.size() == 0) {
             audio_sources = scrapeWord(reading, forvoLanguage);
         }
@@ -51,13 +52,15 @@ public class Scraper {
     }
 
     private ArrayList<HashMap<String, String>> scrapeWord(String word, String language) throws IOException {
-        Document document = Jsoup.connect(SERVER_HOST + "/word/" + strip(word) + "/").get();
+        Document document = Jsoup.connect(SERVER_HOST + "/word/" + strip(word) + "/")
+                .timeout(TIMEOUT_MS)
+                .get();
         Elements elements = document.select("#language-container-" + language + ">article>ul>li:not(.li-ad)");
 
         ArrayList<HashMap<String, String>> audio_sources = new ArrayList<>();
 
         for (Element element : elements) {
-            //System.out.println(element);
+            // System.out.println(element);
             String url = extractURL(Objects.requireNonNull(element.selectFirst(".play")));
 
             HashMap<String, String> user_details = new HashMap<>();
@@ -70,7 +73,9 @@ public class Scraper {
     }
 
     private ArrayList<HashMap<String, String>> scrapeSearch(String input, String language) throws IOException {
-        Document document = Jsoup.connect(SERVER_HOST + "/search/" + strip(input) + "/" + language + "/").get();
+        Document document = Jsoup.connect(SERVER_HOST + "/search/" + strip(input) + "/" + language + "/")
+                .timeout(TIMEOUT_MS)
+                .get();
         Elements elements = document.select("ul.word-play-list-icon-size-l>li>.play");
 
         ArrayList<HashMap<String, String>> audio_sources = new ArrayList<>();
@@ -85,7 +90,7 @@ public class Scraper {
         return audio_sources;
     }
 
-//    Helper method to get rid of leading/trailing spaces
+    //    Helper method to get rid of leading/trailing spaces
     private String strip(String input) {
         return input.replaceAll("^[ \t]+|[ \t]+$", "");
     }
@@ -97,7 +102,7 @@ public class Scraper {
         Pattern pattern = Pattern.compile("([^',\\(\\)]+)");
         Matcher m = pattern.matcher(play);
 
-//        Go to third occurrence
+        //        Go to third occurrence
         m.find();
         m.find();
         m.find();

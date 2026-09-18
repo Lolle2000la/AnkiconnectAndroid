@@ -28,15 +28,18 @@ Personal vendor fork of [KamWithK/AnkiconnectAndroid](https://github.com/KamWith
 All Java is in `app/src/main/java/com/kamwithk/ankiconnectandroid/`.
 - `MainActivity` — launcher; notification channel/permission; Start/Stop from `ServiceState`.
 - `Service` — the NanoHTTPD server as a `specialUse` foreground service on **port 8765**;
-  `START_STICKY`; lifecycle drives `ServiceState`; retries the port bind on start.
+  `START_STICKY`; lifecycle drives `ServiceState`; retries the port bind on start. It posts an
+  ongoing notification with `setOnlyAlertOnce` and a `Stop Service` action (`ACTION_STOP`, handled
+  in `onStartCommand`), and — when the `pause_server_when_screen_off` pref is on — closes/reopens
+  the listening socket on `SCREEN_OFF`/`SCREEN_ON` (the FGS itself stays up).
 - `BootReceiver` — optional autostart on `BOOT_COMPLETED`/quickboot (`start_on_boot` pref).
 - `LocalAudioImportService` — `dataSync` FGS importing the DB; writes
   `PREF_LAST_RESULT = "local_audio_last_import_result"`; implements `Service.onTimeout`.
 - `ServiceState` — process-global STOPPED/STARTING/RUNNING/STOPPING + listeners.
 - `SettingsActivity` — preferences, SAF import, battery/CORS/overlay.
-- `routing/` — `Router` (route table: `/` → `RouteHandler`, `/localaudio/(.)+` →
-  `LocalAudioRouteHandler`; the commented `:source` route syntax does **not** work),
-  `RouteHandler` (API body parse/CORS), `APIHandler` (dispatch), `AnkiAPIRouting` (action
+- `routing/` — `Router` (binds **loopback only** at `127.0.0.1`; route table: `/` → `RouteHandler`,
+  `/localaudio/(.)+` → `LocalAudioRouteHandler`; the commented `:source` route syntax does **not**
+  work), `RouteHandler` (API body parse/CORS), `APIHandler` (dispatch), `AnkiAPIRouting` (action
   switch + envelopes), `ForvoAPIRouting` (scraped Forvo), `LocalAudioAPIRouting`,
   `database/` (Room + singleton + importer), `localaudiosource/` (per-source name/URL).
 - `request_parsers/` — `Parser` (JSON extractors + `gson`/`gsonNoSerialize`), `NoteRequest`,
@@ -85,7 +88,8 @@ Non-obvious wiring:
 - Pref key → reader: `cors_host` → `RouteHandler` (CORS headers); `start_on_boot` → `BootReceiver`;
   `forvo_language` → `Scraper`; `import_local_audio_db`/`local_audio_db_status`/
   `delete_local_audio_db` → `SettingsActivity`; `access_overlay_perms`; `disable_battery_optimization`
-  (opens the system dialog, nothing stored). Storage-location prefs were removed.
+  (opens the system dialog, nothing stored); `pause_server_when_screen_off` → `Service` (closes the
+  listening socket while the screen is off). Storage-location prefs were removed.
 - **Trap:** `SettingsActivity` looks up `cors_hostname`, but the key is `cors_host` (dead handler).
 - Manifest components: `Service` (exported, `specialUse`), `LocalAudioImportService` (`dataSync`),
   `BootReceiver`, `FileProvider` authority `${applicationId}`.
@@ -101,6 +105,12 @@ Non-obvious wiring:
   catch `SecurityException`).
 - **FGS types matter:** the server is `specialUse` so it can start from `BOOT_COMPLETED` on
   Android 15+; the importer is `dataSync` (6h/24h cap + `onTimeout`). Don't switch the server.
+- **Outbound calls must keep timeouts.** `MediaAPI.downloadMediaFile` (`HttpURLConnection`) and
+  `Scraper` (`Jsoup`) set explicit connect/read timeouts; without them a stalled remote host pins a
+  request thread and keeps the radio awake (`URLConnection` defaults to no timeout at all).
+- **The server is loopback-only.** `Router` binds `127.0.0.1`, not the wildcard; `adb forward`
+  still works (it targets device loopback), but no other device can reach the API. Don't revert
+  this to a wildcard bind.
 - **No broad storage access:** DB path is fixed; `MANAGE_EXTERNAL_STORAGE` was removed. Don't
   reintroduce configurable paths/permissions.
 - **Spotless is ratcheted** (`ratchetFrom 'origin/master'`): only files changed since

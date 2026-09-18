@@ -45,6 +45,7 @@ Here's how to set everything up from scratch (if you've already got Yomitan work
 4. Start the Ankiconnect Android app, accept the permissions and hit start service
     * Optional: enable `Start on boot` in the settings to start the server automatically after a restart.
     * Optional: tap `Disable battery optimization` in the settings so the server keeps running reliably in the background.
+    * Optional: enable `Pause server when screen is off` to save battery. The server stops listening while the screen is off and resumes when you turn it back on (Yomitan is only used with the screen on).
 5. Install the [Yomitan extension](https://addons.mozilla.org/en-US/firefox/addon/yomitan/) in Firefox Browser
 6. Configure Yomitan general settings
     1. Ensure advanced settings is enabled (button at the bottom right corner)
@@ -283,6 +284,20 @@ Android may pause or kill background work to save battery. To keep the server ru
 
 > The server runs as a `specialUse` foreground service, which is **not** subject to Android 15's
 > six-hour foreground-service timeout (that limit applies to `dataSync`/`mediaProcessing` only).
+
+
+### Battery use
+The server is event-driven: it only wakes the CPU when a request arrives, so an idle server costs
+very little. If you want to reduce it further:
+- Enable `Pause server when screen is off` in the settings. It closes the listening socket while the
+  screen is off and reopens it when the screen turns back on. This is fine for the main use case
+  because Yomitan is only used with the screen on; requests made with the screen off will fail.
+- You can stop the server at any time with the `Stop Service` action on the ongoing notification,
+  without opening the app.
+
+> The server listens on `127.0.0.1` (loopback) only, not on your Wi-Fi network. Only apps on this
+> device can reach it, and inbound LAN traffic cannot wake the Wi-Fi radio. If a client cannot
+> connect using `localhost`, use `127.0.0.1` in the URL instead.
 
 
 ### I still have a problem

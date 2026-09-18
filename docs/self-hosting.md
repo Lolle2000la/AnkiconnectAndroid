@@ -127,6 +127,9 @@ adb shell am stop-service \
 Because the foreground service is also started from `BOOT_COMPLETED`, the same
 component path applies to automation apps such as Tasker.
 
+> The server binds to `127.0.0.1` (loopback) only. `adb forward tcp:8765 tcp:8765` still works
+> because it connects to the device's loopback, but other devices on the network cannot reach it.
+
 ## Optional: self-hosted F-Droid repository
 
 The same signed APKs can feed a self-hosted F-Droid repository served from

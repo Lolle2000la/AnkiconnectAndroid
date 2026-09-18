@@ -8,10 +8,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 import androidx.core.content.FileProvider;
-import com.kamwithk.ankiconnectandroid.BuildConfig;
 import com.ichi2.anki.FlashCardsContract;
 import com.ichi2.anki.api.AddContentApi;
-
+import com.kamwithk.ankiconnectandroid.BuildConfig;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,6 +20,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class MediaAPI {
+    // Bound outbound downloads so a stalled server cannot pin a request thread (and keep the
+    // radio awake) indefinitely. URLConnection defaults to no timeout at all.
+    private static final int CONNECT_TIMEOUT_MS = 10_000;
+    private static final int READ_TIMEOUT_MS = 10_000;
+
     private Context context;
     private final AddContentApi api;
 
@@ -39,7 +43,7 @@ public class MediaAPI {
         lastPathSegment = lastPathSegment == null ? filename : lastPathSegment;
         File file = new File(context.getCacheDir(), lastPathSegment);
 
-//        Write to a temporary file
+        //        Write to a temporary file
         try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
             fileOutputStream.write(data);
         } catch (Exception e) {
@@ -57,7 +61,7 @@ public class MediaAPI {
         ContentResolver contentResolver = context.getContentResolver();
         Uri returnUri = contentResolver.insert(FlashCardsContract.AnkiMedia.CONTENT_URI, contentValues);
 
-//        Remove temporary file
+        //        Remove temporary file
         file.deleteOnExit();
 
         return new File(returnUri.getPath()).toString().substring(1);
@@ -79,6 +83,8 @@ public class MediaAPI {
     public byte[] downloadMediaFile(String audioUri) throws IOException {
         URL url = new URL(audioUri);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
+        conn.setReadTimeout(READ_TIMEOUT_MS);
 
         try (InputStream in = conn.getInputStream()) {
             try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
@@ -92,5 +98,4 @@ public class MediaAPI {
             }
         }
     }
-
 }

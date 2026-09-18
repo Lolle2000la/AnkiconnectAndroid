@@ -2,7 +2,6 @@ package com.kamwithk.ankiconnectandroid.routing;
 
 import static fi.iki.elonen.NanoHTTPD.newFixedLengthResponse;
 
-import android.util.Log;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -113,7 +112,6 @@ public class AnkiAPIRouting {
             int version = Parser.get_version(raw_json, 4);
             String response = formatSuccessReply(JsonParser.parseString(findRoute(raw_json)), version)
                     .toString();
-            Log.d("AnkiConnectAndroid", "response json: " + response);
             return returnResponse(response);
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
