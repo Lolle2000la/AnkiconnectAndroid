@@ -2,6 +2,8 @@ package com.kamwithk.ankiconnectandroid.routing;
 
 import static fi.iki.elonen.NanoHTTPD.newFixedLengthResponse;
 
+import android.content.Context;
+import androidx.preference.PreferenceManager;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -27,9 +29,11 @@ public class AnkiAPIRouting {
     private final DeckAPI deckAPI;
     private final ModelAPI modelAPI;
     private final MediaAPI mediaAPI;
+    private final Context context;
 
-    public AnkiAPIRouting(IntegratedAPI integratedAPI) {
+    public AnkiAPIRouting(IntegratedAPI integratedAPI, Context context) {
         this.integratedAPI = integratedAPI;
+        this.context = context;
         deckAPI = integratedAPI.deckAPI;
         modelAPI = integratedAPI.modelAPI;
         mediaAPI = integratedAPI.mediaAPI;
@@ -149,7 +153,10 @@ public class AnkiAPIRouting {
     private String requestPermission() {
         JsonObject result = new JsonObject();
         result.addProperty("permission", "granted");
-        result.addProperty("requireApiKey", false);
+        // Field name and casing match desktop AnkiConnect ("requireApikey").
+        result.addProperty(
+                "requireApikey",
+                PreferenceManager.getDefaultSharedPreferences(context).getBoolean(ApiKey.PREF_REQUIRE_API_KEY, true));
         result.addProperty("version", 6);
         return Parser.gson.toJson(result);
     }

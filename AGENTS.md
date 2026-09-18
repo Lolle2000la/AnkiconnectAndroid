@@ -39,8 +39,9 @@ All Java is in `app/src/main/java/com/kamwithk/ankiconnectandroid/`.
 - `SettingsActivity` — preferences, SAF import, battery/CORS/overlay.
 - `routing/` — `Router` (binds **loopback only** at `127.0.0.1`; route table: `/` → `RouteHandler`,
   `/localaudio/(.)+` → `LocalAudioRouteHandler`; the commented `:source` route syntax does **not**
-  work), `RouteHandler` (API body parse/CORS), `APIHandler` (dispatch), `AnkiAPIRouting` (action
-  switch + envelopes), `ForvoAPIRouting` (scraped Forvo), `LocalAudioAPIRouting`,
+  work), `RouteHandler` (API body parse/CORS + API-key check), `APIHandler` (dispatch),
+  `AnkiAPIRouting` (action switch + envelopes), `ApiKey` (generated key + per-request auth),
+  `ForvoAPIRouting` (scraped Forvo), `LocalAudioAPIRouting`,
   `database/` (Room + singleton + importer), `localaudiosource/` (per-source name/URL).
 - `request_parsers/` — `Parser` (JSON extractors + `gson`/`gsonNoSerialize`), `NoteRequest`,
   `MediaRequest`.
@@ -51,6 +52,11 @@ All Java is in `app/src/main/java/com/kamwithk/ankiconnectandroid/`.
 `Router` → `RouteHandler` → `APIHandler` → (`AnkiAPIRouting` | `ForvoAPIRouting`) →
 `IntegratedAPI` → `*API` → AnkiDroid. `APIHandler` diverts form requests that have
 `term`/`expression` **and** `reading` to `ForvoAPIRouting`; everything else is JSON.
+
+`RouteHandler` and `LocalAudioRouteHandler` call `ApiKey.verify` before dispatching. It returns
+`{"result":null,"error":"valid api key must be provided"}` unless the caller is loopback (exempt by
+default) or presents the key as a top-level JSON `key`, a `key` parameter, or an `X-Api-Key` header;
+`requestPermission` is exempt, like desktop AnkiConnect.
 
 To add an AnkiConnect action:
 1. `request_parsers/Parser` — add a `getX(...)` extractor for any new `params` fields.
@@ -90,8 +96,9 @@ Non-obvious wiring:
   `delete_local_audio_db` → `SettingsActivity`; `access_overlay_perms`; `disable_battery_optimization`
   (opens the system dialog, nothing stored); `pause_server_when_screen_off` → `Service` (closes the
   listening socket while the screen is off); `allow_lan_access` → `Router.resolveBindHost` (wildcard
-  vs `127.0.0.1`) and `Service` (reopens the socket when it changes). Storage-location prefs were
-  removed.
+  vs `127.0.0.1`) and `Service` (reopens the socket when it changes); `api_key`/`require_api_key`/
+  `require_api_key_from_loopback` → `ApiKey` (auth policy) and `AnkiAPIRouting.requestPermission`
+  (`requireApikey`). Storage-location prefs were removed.
 - **Trap:** `SettingsActivity` looks up `cors_hostname`, but the key is `cors_host` (dead handler).
 - Manifest components: `Service` (exported, `specialUse`), `LocalAudioImportService` (`dataSync`),
   `BootReceiver`, `FileProvider` authority `${applicationId}`.
@@ -115,6 +122,10 @@ Non-obvious wiring:
   the default: a listening socket on the Wi-Fi interface may keep the Wi-Fi/BT combo chip out of its
   low-power state even though `batterystats` attributes no CPU/radio to the app. `adb forward`
   still works (it targets device loopback).
+- **The API key mirrors desktop AnkiConnect.** Top-level JSON `key` (also accepted as a `key`
+  parameter or `X-Api-Key`); failure is `{"result":null,"error":"valid api key must be provided"}`;
+  `requestPermission` is exempt. The key value is per-install — desktop's `apiKey` is a separate
+  setting, and the key field here is editable if they need to match.
 - **No broad storage access:** DB path is fixed; `MANAGE_EXTERNAL_STORAGE` was removed. Don't
   reintroduce configurable paths/permissions.
 - **Spotless is ratcheted** (`ratchetFrom 'origin/master'`): only files changed since

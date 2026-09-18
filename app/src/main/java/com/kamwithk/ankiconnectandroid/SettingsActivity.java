@@ -22,6 +22,7 @@ import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
+import com.kamwithk.ankiconnectandroid.routing.ApiKey;
 import com.kamwithk.ankiconnectandroid.routing.database.LocalAudioImporter;
 import java.io.File;
 
@@ -151,6 +152,11 @@ public class SettingsActivity extends AppCompatActivity {
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+            Context contextForKey = getContext();
+            if (contextForKey != null) {
+                // Ensure a key exists before the preference summary is bound.
+                ApiKey.getOrCreateApiKey(contextForKey);
+            }
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
 
             Preference preference = findPreference("access_overlay_perms");
@@ -187,6 +193,24 @@ public class SettingsActivity extends AppCompatActivity {
                             startActivity(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
                         }
                     }
+                    return true;
+                });
+            }
+
+            preference = findPreference("regenerate_api_key");
+            if (preference != null) {
+                preference.setOnPreferenceClickListener(p -> {
+                    Context context = getContext();
+                    if (context == null) {
+                        return true;
+                    }
+                    String key = ApiKey.regenerateApiKey(context);
+                    EditTextPreference apiKeyPreference = findPreference("api_key");
+                    if (apiKeyPreference != null) {
+                        apiKeyPreference.setText(key);
+                    }
+                    Toast.makeText(context, R.string.settings_api_key_regenerated, Toast.LENGTH_SHORT)
+                            .show();
                     return true;
                 });
             }

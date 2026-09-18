@@ -14,6 +14,15 @@
     <string name="settings_overlay_permissions_summary">Allows Ankiconnect Android to open AnkiDroid\'s card browser.</string>
     <string name="settings_preferred_storage_header">Local Audio Settings</string>
     <string name="settings_other_header">Other</string>
+    <string name="settings_security_header">Security</string>
+    <string name="settings_api_key_title">API key</string>
+    <string name="settings_regenerate_api_key_title">Regenerate API key</string>
+    <string name="settings_regenerate_api_key_summary">Replaces the key with a new random one. Clients must be updated afterwards.</string>
+    <string name="settings_api_key_regenerated">New API key generated</string>
+    <string name="settings_require_api_key_title">Require API key</string>
+    <string name="settings_require_api_key_summary">Requests from other devices must send this key. Only relevant when network access is allowed.</string>
+    <string name="settings_require_api_key_loopback_title">Require API key from this device too</string>
+    <string name="settings_require_api_key_loopback_summary">Also require the key for apps on this phone. Add it to the Yomitan AnkiConnect settings and to the local audio URL as &amp;key=…</string>
     <string name="settings_start_on_boot_title">Start on boot</string>
     <string name="settings_start_on_boot_summary">Automatically start the server after the device restarts.</string>
     <string name="settings_allow_lan_access_title">Allow access from the network</string>

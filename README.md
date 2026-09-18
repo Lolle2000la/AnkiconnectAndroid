@@ -301,6 +301,19 @@ very little. If you want to reduce it further:
 > `Allow access from the network` in the settings if another device must reach the server.
 
 
+### Security and the API key
+The app generates an API key (visible under `Settings` → `Security`), like the desktop AnkiConnect
+add-on.
+- By default the server only listens on `127.0.0.1`, so only apps on this phone can reach it, and
+  they do not need the key.
+- If you enable `Allow access from the network`, other devices must send the key or they get
+  `{"result": null, "error": "valid api key must be provided"}`.
+- Enable `Require API key from this device too` to require it for apps on the phone as well. You then
+  need to add the key to Yomitan's AnkiConnect settings and to the local audio URL (`...&key=<key>`);
+  the local audio file URLs returned by the server already include it.
+- `Regenerate API key` issues a new key; update any clients afterwards.
+
+
 ### I still have a problem
 If you've gone through the instructions and are still having trouble, feel free to create an issue here on GitHub or @/dm me on Discord (`@KamWithK#0634` on [TheMoeWay](https://learnjapanese.moe/join/)). Most related discussions happen in [the AnkiConnect Android thread](https://discord.com/channels/617136488840429598/1060781077955887195).
 

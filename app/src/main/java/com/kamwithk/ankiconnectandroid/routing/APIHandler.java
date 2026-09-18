@@ -13,7 +13,7 @@ public class APIHandler {
     private final LocalAudioAPIRouting localAudioAPIRouting;
 
     public APIHandler(IntegratedAPI integratedAPI, Context context) {
-        ankiAPIRouting = new AnkiAPIRouting(integratedAPI);
+        ankiAPIRouting = new AnkiAPIRouting(integratedAPI, context);
         forvoAPIRouting = new ForvoAPIRouting(context);
         localAudioAPIRouting = new LocalAudioAPIRouting(context);
     }

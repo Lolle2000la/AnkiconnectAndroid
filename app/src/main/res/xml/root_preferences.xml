@@ -27,6 +27,37 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory app:iconSpaceReserved="false" app:title="@string/settings_security_header">
+
+        <EditTextPreference
+                app:iconSpaceReserved="false"
+                app:key="api_key"
+                app:dialogTitle="@string/settings_api_key_title"
+                app:title="@string/settings_api_key_title"
+                app:useSimpleSummaryProvider="true" />
+
+        <Preference
+                app:iconSpaceReserved="false"
+                app:key="regenerate_api_key"
+                app:title="@string/settings_regenerate_api_key_title"
+                app:summary="@string/settings_regenerate_api_key_summary" />
+
+        <CheckBoxPreference
+                app:iconSpaceReserved="false"
+                app:key="require_api_key"
+                app:defaultValue="true"
+                app:title="@string/settings_require_api_key_title"
+                app:summary="@string/settings_require_api_key_summary" />
+
+        <CheckBoxPreference
+                app:iconSpaceReserved="false"
+                app:key="require_api_key_from_loopback"
+                app:defaultValue="false"
+                app:title="@string/settings_require_api_key_loopback_title"
+                app:summary="@string/settings_require_api_key_loopback_summary" />
+
+    </PreferenceCategory>
+
     <PreferenceCategory
             app:iconSpaceReserved="false"
             app:title="@string/settings_preferred_storage_header">

@@ -78,6 +78,14 @@ public class LocalAudioAPIRouting {
     }
 
     public NanoHTTPD.Response getAudioSourcesHandleError(Map<String, List<String>> parameters) {
+        return getAudioSourcesHandleError(parameters, null);
+    }
+
+    /**
+     * @param urlKey when non-null, appended to the generated file URLs so a client that had to
+     *     authenticate can also fetch the audio files themselves.
+     */
+    public NanoHTTPD.Response getAudioSourcesHandleError(Map<String, List<String>> parameters, String urlKey) {
 
         String term = getTerm(parameters);
         String reading = getReading(parameters);
@@ -149,6 +157,9 @@ public class LocalAudioAPIRouting {
 
             String name = audioSource.getSourceName(entry);
             String url = audioSource.constructFileURL(file);
+            if (urlKey != null) {
+                url += "?key=" + urlKey;
+            }
 
             Map<String, String> audioSourceEntry = new HashMap<>();
             audioSourceEntry.put("name", name);

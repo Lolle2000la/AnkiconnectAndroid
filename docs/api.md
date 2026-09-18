@@ -24,6 +24,35 @@ Do not expect the error message to be the exact same as the PC Anki-Connect erro
 
 <br>
 
+## Authentication
+
+Like the desktop Anki-Connect add-on, this app generates an API key (Settings → Security). Requests
+from outside localhost must include it. By default apps on the phone (localhost) do **not** need the
+key; enable `Require API key from this device too` to change that.
+
+The key can be supplied in any of these ways:
+
+* a top-level `key` field in the JSON body (Anki-Connect compatible), e.g.
+  `{"action":"version","version":6,"key":"..."}`
+* a `key` query parameter, e.g. `/localaudio/get/?term=...&reading=...&key=...`
+* an `X-Api-Key` header
+
+A request without a valid key gets (same message and shape as desktop Anki-Connect):
+
+```
+{
+    "result": null,
+    "error": "valid api key must be provided"
+}
+```
+
+`requestPermission` is exempt from the key check, like desktop Anki-Connect, so a client can
+discover whether a key is required before it has one.
+
+`Require API key` can be turned off, but that leaves the server open to anything that can reach it.
+
+<br>
+
 ## Deck Actions
 
 ### `deckNames`

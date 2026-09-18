@@ -1,30 +1,24 @@
 package com.kamwithk.ankiconnectandroid.routing;
 
 import static com.kamwithk.ankiconnectandroid.routing.Router.contentType;
-
 import static fi.iki.elonen.NanoHTTPD.newFixedLengthResponse;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-
 import androidx.preference.PreferenceManager;
-
 import com.kamwithk.ankiconnectandroid.ankidroid_api.IntegratedAPI;
-
+import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.router.RouterNanoHTTPD;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import fi.iki.elonen.NanoHTTPD;
-import fi.iki.elonen.router.RouterNanoHTTPD;
 
 public class RouteHandler extends RouterNanoHTTPD.DefaultHandler {
 
     private APIHandler apiHandler = null;
     private static final String PRIVATE_NETWORK_ACCESS_REQUEST = "Access-Control-Request-Private-Network";
     private static final String PRIVATE_NETWORK_ACCESS_RESPONSE = "Access-Control-Allow-Private-Network";
-
 
     public RouteHandler() {
         super();
@@ -45,14 +39,12 @@ public class RouteHandler extends RouterNanoHTTPD.DefaultHandler {
         return NanoHTTPD.Response.Status.OK;
     }
 
-    public NanoHTTPD.Response get(RouterNanoHTTPD.UriResource uriResource, Map<String, String> urlParams, NanoHTTPD.IHTTPSession session) {
-//        Setup
+    public NanoHTTPD.Response get(
+            RouterNanoHTTPD.UriResource uriResource, Map<String, String> urlParams, NanoHTTPD.IHTTPSession session) {
+        //        Setup
         Context context = uriResource.initParameter(0, Context.class);
-        if (apiHandler == null) {
-            apiHandler = new APIHandler(new IntegratedAPI(context), context);
-        }
 
-//        Enforce UTF-8 encoding (response doesn't always contain by default)
+        //        Enforce UTF-8 encoding (response doesn't always contain by default)
         session.getHeaders().put("content-type", contentType);
 
         Map<String, String> files = new HashMap<>();
@@ -60,6 +52,17 @@ public class RouteHandler extends RouterNanoHTTPD.DefaultHandler {
             session.parseBody(files);
         } catch (IOException | NanoHTTPD.ResponseException e) {
             e.printStackTrace();
+        }
+
+        //        Requests from outside loopback must carry the API key (unless disabled in the settings).
+        NanoHTTPD.Response unauthorized = ApiKey.verify(context, session, files.get("postData"));
+        if (unauthorized != null) {
+            addCorsHeaders(context, unauthorized);
+            return unauthorized;
+        }
+
+        if (apiHandler == null) {
+            apiHandler = new APIHandler(new IntegratedAPI(context), context);
         }
 
         Map<String, List<String>> parameters = session.getParameters();
