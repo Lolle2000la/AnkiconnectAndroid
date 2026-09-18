@@ -5,6 +5,9 @@ import static android.Manifest.permission.POST_NOTIFICATIONS;
 import android.app.Dialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
@@ -217,6 +220,31 @@ public class MainActivity extends AppCompatActivity {
         if (!stopService(serviceIntent)) {
             // The service was not running after all.
             ServiceState.set(ServiceState.State.STOPPED);
+        }
+    }
+
+    public void copyAnkiConnectUrlBtn(View view) {
+        copyToClipboard(YomitanUrls.ankiConnect());
+    }
+
+    public void copyLocalAudioUrlBtn(View view) {
+        copyToClipboard(YomitanUrls.localAudio(this));
+    }
+
+    public void copyForvoUrlBtn(View view) {
+        copyToClipboard(YomitanUrls.forvo(this));
+    }
+
+    private void copyToClipboard(String url) {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboard == null) {
+            return;
+        }
+        clipboard.setPrimaryClip(ClipData.newPlainText(getString(R.string.app_name), url));
+        // Android 13+ shows its own "Copied" confirmation, so only toast on older releases.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            Toast.makeText(this, getString(R.string.url_copied, url), Toast.LENGTH_SHORT)
+                    .show();
         }
     }
 }

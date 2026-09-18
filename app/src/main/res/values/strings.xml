@@ -4,6 +4,11 @@
     <string name="action_settings">Settings</string>
     <string name="action_start_service">Start Service</string>
     <string name="action_stop_service">Stop Service</string>
+    <string name="yomitan_urls_header">Copy a Yomitan URL</string>
+    <string name="copy_ankiconnect_url">Copy AnkiConnect URL</string>
+    <string name="copy_local_audio_url">Copy local audio URL</string>
+    <string name="copy_forvo_url">Copy Forvo URL</string>
+    <string name="url_copied">Copied: %1$s</string>
     <string name="service_status_stopped">Server stopped</string>
     <string name="service_status_starting">Starting server…</string>
     <string name="service_status_running">Server running</string>

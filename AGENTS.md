@@ -26,7 +26,10 @@ Personal vendor fork of [KamWithK/AnkiconnectAndroid](https://github.com/KamWith
 
 ## Where things live
 All Java is in `app/src/main/java/com/kamwithk/ankiconnectandroid/`.
-- `MainActivity` — launcher; notification channel/permission; Start/Stop from `ServiceState`.
+- `MainActivity` — launcher; notification channel/permission; Start/Stop from `ServiceState`; copy
+  buttons for the Yomitan URLs.
+- `YomitanUrls` — the copy-to-clipboard values (AnkiConnect base, local audio, Forvo); appends the
+  API key only when loopback requires it.
 - `Service` — the NanoHTTPD server as a `specialUse` foreground service on **port 8765**;
   `START_STICKY`; lifecycle drives `ServiceState`; retries the port bind on start. It posts an
   ongoing notification with `setOnlyAlertOnce` and a `Stop Service` action (`ACTION_STOP`, handled

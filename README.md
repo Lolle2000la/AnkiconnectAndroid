@@ -46,6 +46,7 @@ Here's how to set everything up from scratch (if you've already got Yomitan work
     * Optional: enable `Start on boot` in the settings to start the server automatically after a restart.
     * Optional: tap `Disable battery optimization` in the settings so the server keeps running reliably in the background.
     * Optional: enable `Pause server when screen is off` to save battery. The server stops listening while the screen is off and resumes when you turn it back on (Yomitan is only used with the screen on).
+    * The main screen has `Copy AnkiConnect URL`, `Copy local audio URL` and `Copy Forvo URL` buttons, so you can paste the right values into Yomitan without checking this file.
 5. Install the [Yomitan extension](https://addons.mozilla.org/en-US/firefox/addon/yomitan/) in Firefox Browser
 6. Configure Yomitan general settings
     1. Ensure advanced settings is enabled (button at the bottom right corner)
