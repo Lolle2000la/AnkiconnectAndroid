@@ -61,6 +61,13 @@
 
         <CheckBoxPreference
                 app:iconSpaceReserved="false"
+                app:key="allow_lan_access"
+                app:defaultValue="false"
+                app:title="@string/settings_allow_lan_access_title"
+                app:summary="@string/settings_allow_lan_access_summary" />
+
+        <CheckBoxPreference
+                app:iconSpaceReserved="false"
                 app:key="pause_server_when_screen_off"
                 app:defaultValue="false"
                 app:title="@string/settings_pause_screen_off_title"

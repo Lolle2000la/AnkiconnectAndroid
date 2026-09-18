@@ -295,9 +295,10 @@ very little. If you want to reduce it further:
 - You can stop the server at any time with the `Stop Service` action on the ongoing notification,
   without opening the app.
 
-> The server listens on `127.0.0.1` (loopback) only, not on your Wi-Fi network. Only apps on this
-> device can reach it, and inbound LAN traffic cannot wake the Wi-Fi radio. If a client cannot
-> connect using `localhost`, use `127.0.0.1` in the URL instead.
+> By default the server listens on `127.0.0.1` (loopback) only, not on your Wi-Fi network, so only
+> apps on this device can reach it and the listening socket cannot keep the Wi-Fi chip busy. If a
+> client cannot connect using `localhost`, use `127.0.0.1` in the URL instead. Enable
+> `Allow access from the network` in the settings if another device must reach the server.
 
 
 ### I still have a problem

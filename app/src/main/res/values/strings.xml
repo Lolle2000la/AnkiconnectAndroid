@@ -16,6 +16,8 @@
     <string name="settings_other_header">Other</string>
     <string name="settings_start_on_boot_title">Start on boot</string>
     <string name="settings_start_on_boot_summary">Automatically start the server after the device restarts.</string>
+    <string name="settings_allow_lan_access_title">Allow access from the network</string>
+    <string name="settings_allow_lan_access_summary">Off: the server only listens on this device (127.0.0.1). On: other devices on the same Wi-Fi can reach it. The server reopens automatically when this changes.</string>
     <string name="settings_pause_screen_off_title">Pause server when screen is off</string>
     <string name="settings_pause_screen_off_summary">Stops listening while the screen is off to save battery and resumes when the screen turns back on. Requests made with the screen off will fail.</string>
     <string name="settings_battery_optimization_title">Disable battery optimization</string>

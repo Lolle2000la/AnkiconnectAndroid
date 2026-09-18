@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -29,6 +30,7 @@ public class Service extends android.app.Service {
     private static final String TAG = "AnkiconnectAndroid";
     private static final int NOTIFICATION_ID = 1;
     private static final String PREF_PAUSE_SERVER_WHEN_SCREEN_OFF = "pause_server_when_screen_off";
+    private static final String PREF_ALLOW_LAN_ACCESS = "allow_lan_access";
 
     private Router server;
     private boolean pausedForScreenOff = false;
@@ -43,6 +45,21 @@ public class Service extends android.app.Service {
         }
     };
 
+    /**
+     * Reopens the listening socket so a change to the bind address (loopback vs all interfaces)
+     * takes effect without the user having to stop and start the server manually.
+     */
+    private final SharedPreferences.OnSharedPreferenceChangeListener bindPreferenceListener = (preferences, key) -> {
+        if (PREF_ALLOW_LAN_ACCESS.equals(key)) {
+            Log.i(TAG, "Bind preference changed; reopening the server socket");
+            if (server != null) {
+                server.stop();
+                server = null;
+            }
+            applyScreenState();
+        }
+    };
+
     @Override
     public void onCreate() { // Only one time
         super.onCreate();
@@ -54,6 +71,9 @@ public class Service extends android.app.Service {
         ContextCompat.registerReceiver(
                 this, screenStateReceiver, screenStateFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
         screenStateReceiverRegistered = true;
+
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .registerOnSharedPreferenceChangeListener(bindPreferenceListener);
     }
 
     private void startServer() {
@@ -159,6 +179,8 @@ public class Service extends android.app.Service {
 
     @Override
     public void onDestroy() {
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .unregisterOnSharedPreferenceChangeListener(bindPreferenceListener);
         if (screenStateReceiverRegistered) {
             unregisterReceiver(screenStateReceiver);
             screenStateReceiverRegistered = false;

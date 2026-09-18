@@ -89,7 +89,9 @@ Non-obvious wiring:
   `forvo_language` → `Scraper`; `import_local_audio_db`/`local_audio_db_status`/
   `delete_local_audio_db` → `SettingsActivity`; `access_overlay_perms`; `disable_battery_optimization`
   (opens the system dialog, nothing stored); `pause_server_when_screen_off` → `Service` (closes the
-  listening socket while the screen is off). Storage-location prefs were removed.
+  listening socket while the screen is off); `allow_lan_access` → `Router.resolveBindHost` (wildcard
+  vs `127.0.0.1`) and `Service` (reopens the socket when it changes). Storage-location prefs were
+  removed.
 - **Trap:** `SettingsActivity` looks up `cors_hostname`, but the key is `cors_host` (dead handler).
 - Manifest components: `Service` (exported, `specialUse`), `LocalAudioImportService` (`dataSync`),
   `BootReceiver`, `FileProvider` authority `${applicationId}`.
@@ -108,9 +110,11 @@ Non-obvious wiring:
 - **Outbound calls must keep timeouts.** `MediaAPI.downloadMediaFile` (`HttpURLConnection`) and
   `Scraper` (`Jsoup`) set explicit connect/read timeouts; without them a stalled remote host pins a
   request thread and keeps the radio awake (`URLConnection` defaults to no timeout at all).
-- **The server is loopback-only.** `Router` binds `127.0.0.1`, not the wildcard; `adb forward`
-  still works (it targets device loopback), but no other device can reach the API. Don't revert
-  this to a wildcard bind.
+- **The server binds loopback by default.** `Router.resolveBindHost` returns `127.0.0.1` unless the
+  `allow_lan_access` pref is set, in which case it passes a null host to NanoHTTPD (wildcard). Keep
+  the default: a listening socket on the Wi-Fi interface may keep the Wi-Fi/BT combo chip out of its
+  low-power state even though `batterystats` attributes no CPU/radio to the app. `adb forward`
+  still works (it targets device loopback).
 - **No broad storage access:** DB path is fixed; `MANAGE_EXTERNAL_STORAGE` was removed. Don't
   reintroduce configurable paths/permissions.
 - **Spotless is ratcheted** (`ratchetFrom 'origin/master'`): only files changed since
